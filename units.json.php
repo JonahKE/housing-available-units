@@ -31,7 +31,7 @@ foreach (range('A', 'T') as $l) {
 
 foreach ($data['groups'] as $i => $g) {
 	$x = 0;
-	while ( rand(380,410) > $x) {
+	while ( 402 > $x) {
 		$rw = array_rand( $words, 10 );
 		$recentlyTaken = ( 2 == rand(1,4) );
 		$data['rooms'][$g['id']][] = array(

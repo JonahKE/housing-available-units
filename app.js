@@ -9,6 +9,13 @@ var Ticker = React.createClass({
         return;
     }
     this.setState({secondsLeft: left});
+    $('#housing_table .last-updated span').each(function(i,e){
+        var timestamp = $(e).data('timestamp');
+        if( undefined === timestamp ){
+            return;
+        }
+        $(e).text( moment( timestamp ).fromNow() );
+    });
   },
   startTicking: function( t ){
      this.setState({secondsLeft: t});
@@ -20,7 +27,7 @@ var Ticker = React.createClass({
   },
   render: function() {
     return (
-      <div>Updated list available in: {this.state.secondsLeft}</div>
+      <div>Updates in: {this.state.secondsLeft}</div>
     );
   }
 });
@@ -29,7 +36,15 @@ var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
  
 var Housing = React.createClass({
     getInitialState: function() {
-        return { title : _bootstrap.meta.name, groups : _bootstrap.groups, rooms : _bootstrap.rooms, roomCount : _bootstrap.roomCount, isDataPending: false, dataPending: null, dataPendingDownloadedAt: false };
+        return { 
+            title : _bootstrap.meta.name, 
+            groups : _bootstrap.groups, 
+            rooms : _bootstrap.rooms, 
+            roomCount : _bootstrap.roomCount, 
+            isDataPending: false, 
+            dataPending: null, 
+            lastDownloadTime: new Date() 
+        };
     },
     componentDidMount:function(){
         document.getElementById('loader').className = '';
@@ -43,11 +58,11 @@ var Housing = React.createClass({
             return;
         }
         var d = this.state.dataPending;
-        this.setState({ groups : d.groups, rooms : d.rooms, roomCount : d.roomCount, isDataPending: false, dataPending: null, dataPendingDownloadedAt: false });
+        this.setState({ groups : d.groups, rooms : d.rooms, roomCount : d.roomCount, isDataPending: false, dataPending: null, lastDownloadTime: false });
     },
     updateDataEvery30: function(){
         var that = this,
-            t = 15;
+            t = 90;
         if( theTicker.isMounted() ){
             theTicker.startTicking( t );
         }
@@ -64,7 +79,8 @@ var Housing = React.createClass({
         $.getJSON('http://awbauer.cms-devl.bu.edu/nonwp/test3.json.php', function(r){
             var now = new Date();
             if( r.hasOwnProperty('groups') && r.hasOwnProperty('rooms') ){
-                that.setState({ isDataPending: true, dataPending: r, dataPendingDownloadedAt: now.toISOString() })
+                // that.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
+                that.setState({ groups: r.groups, rooms: r.rooms, lastDownloadTime: new Date() });
             }
             document.getElementById('loader').className = '';
             if( t > 0 ){
@@ -78,11 +94,11 @@ var Housing = React.createClass({
         }.bind(this));
     },
     render: function(){
-        var applyDataDisplay = this.state.isDataPending ? '' : 'none';
-            lastDownloadAgo = ( this.state.dataPendingDownloadedAt ) ? moment( this.state.dataPendingDownloadedAt ).fromNow() : ''; 
+        var applyDataDisplay = this.state.isDataPending ? '' : 'none',
+            that = this;
         return (
             <div>
-                <p className="apply-data" style={{display:applyDataDisplay}} onClick={this.applyPendingData}>Update data <br /><span className="downloaded-time">Downloaded {lastDownloadAgo}</span></p>
+                <span className="last-updated">Last updated <span data-timestamp={this.state.lastDownloadTime.toISOString()}>{moment(this.state.lastDownloadTime.toISOString()).fromNow()}</span></span>
                 <RoomList groups={this.state.groups} rooms={this.state.rooms} roomCount={this.state.roomCount} />
             </div>
         );
@@ -146,7 +162,7 @@ var GroupTable = React.createClass({
  
 var Row = React.createClass({
     shouldComponentUpdate: function(nextProps, nextState){
-        return nextProps.data.wasRecentlyTaken !== this.props.data.wasRecentlyTaken;
+        return (nextProps.data.wasRecentlyTaken !== this.props.data.wasRecentlyTaken);
     },
     render: function(){
         var recentlyTakenClass = this.props.data.wasRecentlyTaken ? ' booked ' : '';
