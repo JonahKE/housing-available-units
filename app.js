@@ -4,18 +4,29 @@ var Ticker = React.createClass({
   },
   tick: function() {
     var left = this.state.secondsLeft - 1;
+    
+    this.updateMoment();
+    
     if( left != parseInt(left) || 0 >= left ){
         this.stopTicking();
         return;
     }
-    this.setState({secondsLeft: left});
-    $('#housing_table .last-updated span').each(function(i,e){
-        var timestamp = $(e).data('timestamp');
-        if( undefined === timestamp ){
-            return;
-        }
-        $(e).text( moment( timestamp ).fromNow() );
-    });
+    this.setState({secondsLeft: left}); 
+  },
+  updateMoment: function(){
+    var timeSince = document.querySelector('.last-updated .time');
+
+    if( undefined === timeSince.dataset.timestamp ){
+        return;
+    }
+
+    newText = moment( timeSince.dataset.timestamp ).fromNow();
+
+    if( newText == timeSince.innerHTML ){
+        return;
+    }
+
+    timeSince.innerHTML = newText;   
   },
   startTicking: function( t ){
      this.setState({secondsLeft: t});
@@ -48,7 +59,7 @@ var Housing = React.createClass({
     },
     componentDidMount:function(){
         document.getElementById('loader').className = '';
-        this.updateDataEvery30();
+        this.updateDataEvery90();
     },
     titleChange: function( e ){
         this.setState({ title : e.target.value });
@@ -60,7 +71,7 @@ var Housing = React.createClass({
         var d = this.state.dataPending;
         this.setState({ groups : d.groups, rooms : d.rooms, roomCount : d.roomCount, isDataPending: false, dataPending: null, lastDownloadTime: false });
     },
-    updateDataEvery30: function(){
+    updateDataEvery90: function(){
         var that = this,
             t = 90;
         if( theTicker.isMounted() ){
@@ -98,7 +109,7 @@ var Housing = React.createClass({
             that = this;
         return (
             <div>
-                <span className="last-updated">Last updated <span data-timestamp={this.state.lastDownloadTime.toISOString()}>{moment(this.state.lastDownloadTime.toISOString()).fromNow()}</span></span>
+                <span className="last-updated">Last updated <span className="time" data-timestamp={this.state.lastDownloadTime.toISOString()}>{moment(this.state.lastDownloadTime.toISOString()).fromNow()}</span></span>
                 <RoomList groups={this.state.groups} rooms={this.state.rooms} roomCount={this.state.roomCount} />
             </div>
         );
