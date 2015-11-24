@@ -1,10 +1,34 @@
 {
     "roomsExtract" : {
         "createTime" : "JD 2457191.629914",
-        "units" : [
-            {
-                "id"    : "133 BSR-0001",
-                "area"  : " Bay State Road Apartments ",
+        "spaceTypes" : ["Apartment","Suite","Dormitory"],
+        "areas" : {
+            "Comm Ave Apartments" : {
+                "name" : "Area A",
+                "roomCount" : 0,
+                "availableSpaceCount" : 0,
+                "totalSpaceCount" : 0,
+                "spacesAvailableByType" : {
+                    "Apartment" : 0,
+                    "Suite" : 0,
+                    "Dormitory" : 0
+                }
+            },
+            "Bay State Road Apartments" : {
+                "name" : "Area B",
+                "roomCount" : 1,
+                "availableSpaceCount" : 2,
+                "totalSpaceCount" : 5,
+                "spacesAvailableByType" : {
+                    "Apartment" : 1,
+                    "Suite" : 0,
+                    "Dormitory" : 1
+                }
+            }
+        },
+        "units" : {
+            "133 BSR-0001" : {
+                "area"  : "Bay State Road Apartments",
                 "location" : "133 Bay State Road",
                 "floor" : 1,
                 "unitTotalSpaces" : 2,
@@ -30,9 +54,8 @@
                     }
                 ]
             },
-            {
-                "id"    : "133 BSR-0002",
-                "area"  : " Bay State Road Apartments ",
+            "133 BSR-0002" : {
+                "area"  : "Bay State Road Apartments",
                 "location" : "133 Bay State Road",
                 "floor" : 1,
                 "unitTotalSpaces" : 4,
@@ -57,7 +80,7 @@
                         "roomAvailableSpaces" : 0
                     }
                 ]
-            },
-        ]
+            }
+        }
     }
 }
