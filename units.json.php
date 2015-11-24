@@ -15,7 +15,6 @@ $data = array(
 							),
 	'areas'				=> array(),
 	'units' 			=> array(),
-	'rooms' 			=> array(),
 	'totalRoomCount'	=> 0,
 	);
 
@@ -31,27 +30,23 @@ foreach ( range('A', 'C') as $l ) {
 		'name' => 'Area ' . $l,
 		'roomCount' => 0,
 		'availableSpaceCount' => 0,
+		'totalSpaceCount' => 0,
 	);
 }
 
-while ( rand(8,15) > $data['totalRoomCount']) {
+while ( rand(8,15) > $data['totalRoomCount'] ) {
 	$rw = array_rand( $words );
-	$recentlyTaken 			= ( 2 == rand(1,4) );
 	$streetNum 				= rand(1,1000);
 	$roomType 				= $roomTypes[ rand(0,2) ];
 	$unit 					= sprintf( "%d %s%s%s-%d", $streetNum, chr(65+rand(0,5)),chr(65+rand(0,5)),chr(65+rand(0,5)),str_pad( rand(1,1000), 4, "0", STR_PAD_LEFT) );
-	$unitPersonCount		= rand(1,$roomSpacesCount);
-	$unitSpacesCount 		= $roomSpacesCount + rand(0, 2);
-	$maxUnitSpacesAvail 	= ( $unitSpacesCount - $roomSpacesAvailCount );
-	$unitAvailableSpaces 	= $roomSpacesAvailCount + rand( 0, ( $maxUnitSpacesAvail ) );
-	$area 					= $data['areas'][ array_rand( $data['areas'] ) ];
+	$area 					= array_rand( $data['areas'] );
 
 	$data['units'][$unit] = array(
-		'area' 					=> $i,
+		'area' 					=> $area,
 		'location'				=> sprintf( "%d %s %s street", $streetNum, $words[ $rw[0] ], $words[ $rw[1] ] ),
 		'floor' 				=> rand(1,5),
-		'unitTotalSpaces'		=> $unitSpacesCount,
-		'unitAvailableSpaces'	=> $unitAvailableSpaces,
+		'unitTotalSpaces'		=> 0,
+		'unitAvailableSpaces'	=> 0,
 		'gender'				=> $gender[ rand(0,2) ],
 		'specialty'				=> $specialty[ rand(0,2) ],
 		'rooms'					=> array(),
@@ -59,30 +54,28 @@ while ( rand(8,15) > $data['totalRoomCount']) {
 
 	while ( rand(1,3) > count( $data['units'][$unit]['rooms'] ) ) {
 		$room 					= chr(65+rand(0,5));
-		$roomSpacesCount 		= array_search( $roomType, $roomTypes ) + 1;
-		$roomSpacesAvailCount 	= ( $roomSpacesCount - rand(1,$unitPersonCount) );
+		$spacesCount 		= array_search( $roomType, $roomTypes ) + 1;
+		$spacesAvailCount 	= ( $spacesCount - rand(1,$spacesCount) );
 		$roomID 				= sprintf( "%s-%s", $unit, $room );
 
-		$data['units'][$unit]['rooms'][$roomID] = array(
-			'key'					=> $data['totalRoomCount'],
-			'area' 					=> $i,
+		$data['units'][$unit]['rooms'][] = array(
+			// 'key'					=> $data['totalRoomCount'],
+			'id'					=> $roomID,
 			'summaryRoomType' 		=> $roomTypes[ rand(0,2) ],
-			'roomType' 				=> sprintf( "%s-%dPerson-%s", $roomType, $unitPersonCount, $roomTypeNum[ rand(0,3) ] ),
+			'roomType' 				=> sprintf( "%s-%dPerson-%s", $roomType, $spacesCount, $roomTypeNum[ rand(0,3) ] ),
 			'room'					=> $room,
-			'roomTotalSpaces'		=> $roomSpacesCount,
-			'roomAvailableSpaces'	=> $roomSpacesAvailCount,
+			'roomTotalSpaces'		=> $spacesCount,
+			'roomAvailableSpaces'	=> $spacesAvailCount,
 			);
+
 		$data['totalRoomCount']++;
+		$data['units'][$unit]['unitTotalSpaces'] += $spacesCount;
+		$data['units'][$unit]['unitAvailableSpaces'] += $spacesAvailCount;
 	}
 
-
-	$data['areas'][$i]['roomCount']++;
-	$data['areas'][$i]['availableSpaceCount'] += $roomSpacesAvailCount;
-
-	// $data['units'][$unit]['roomsCount']++;
-	// $data['units'][$unit]['area'] = $i;
-	// $data['units'][$unit]['totalSpacesCount'] += $unitSpacesCount;
-	// $data['units'][$unit]['availSpacesCount'] += $unitAvailableSpaces;
+	$data['areas'][$area]['roomCount']++;
+	$data['areas'][$area]['availableSpaceCount'] = $data['units'][$unit]['unitAvailableSpaces'];
+	$data['areas'][$area]['totalSpaceCount'] = $data['units'][$unit]['unitTotalSpaces'];
 }
 
 header('Access-Control-Allow-Origin: *');
