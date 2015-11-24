@@ -1,3 +1,11 @@
+var DisplayMixin = {
+    maybePlural: function( qty, singularLabel, pluralLabel ){
+        if( 'undefined' === typeof pluralLabel ){
+            pluralLabel = singularLabel + 's';
+        }
+        return qty + ' ' + ( qty == 1 ? singularLabel : pluralLabel );
+    }
+};
 var Ticker = React.createClass({
   getInitialState: function() {
     return {};
@@ -48,10 +56,10 @@ var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
 var Housing = React.createClass({
     getInitialState: function() {
         return { 
-            title : _bootstrap.meta.name, 
-            groups : _bootstrap.groups, 
-            rooms : _bootstrap.rooms, 
-            roomCount : _bootstrap.roomCount, 
+            title : _bootstrap.metaData.name, 
+            areas : _bootstrap.areas, 
+            units : _bootstrap.units, 
+            roomCount : _bootstrap.totalRoomCount, 
             isDataPending: false, 
             dataPending: null, 
             lastDownloadTime: new Date() 
@@ -69,7 +77,7 @@ var Housing = React.createClass({
             return;
         }
         var d = this.state.dataPending;
-        this.setState({ groups : d.groups, rooms : d.rooms, roomCount : d.roomCount, isDataPending: false, dataPending: null, lastDownloadTime: false });
+        this.setState({ areas : d.areas, units : d.units, roomCount : d.totalRoomCount, isDataPending: false, dataPending: null, lastDownloadTime: false });
     },
     updateDataEvery90: function(){
         var that = this,
@@ -89,9 +97,9 @@ var Housing = React.createClass({
         }
         $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', function(r){
             var now = new Date();
-            if( r.hasOwnProperty('groups') && r.hasOwnProperty('rooms') ){
+            if( r.hasOwnProperty('areas') && r.hasOwnProperty('units') ){
                 // that.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
-                that.setState({ groups: r.groups, rooms: r.rooms, lastDownloadTime: new Date() });
+                that.setState({ areas: r.areas, units: r.units, lastDownloadTime: new Date() });
             }
             document.getElementById('loader').className = '';
             if( t > 0 ){
@@ -110,42 +118,56 @@ var Housing = React.createClass({
         return (
             <div>
                 <span className="last-updated">Last updated <span className="time" data-timestamp={this.state.lastDownloadTime.toISOString()}>{moment(this.state.lastDownloadTime.toISOString()).fromNow()}</span></span>
-                <RoomList groups={this.state.groups} rooms={this.state.rooms} roomCount={this.state.roomCount} />
+                <RoomList areas={this.state.areas} units={this.state.units} roomCount={this.state.roomCount} />
             </div>
         );
     }
 });
  
 var RoomList = React.createClass({
+    mixins: [DisplayMixin],
     render: function() {
+        var areasText = this.maybePlural( this.props.areas.length, 'area' ), 
+            unitsText = this.maybePlural( this.props.roomCount, 'unit' );
         return (
-        <div>
-            <div className='loaded-rooms-count'>Loaded {this.props.groups.length} groups containing {this.props.roomCount} rooms</div>
-            <br /><br />
-            {this.props.groups.map(function(s,i,a) {
-              return <RoomGroup group={s} rooms={this.props.rooms[s.id]} key={s.id} />;
-            },this)}
-        </div>
+            <div>
+                <div className='loaded-units-count'>Loaded {areasText} containing {unitsText}</div>
+                <br /><br />
+                {this.props.areas.map(function(s,i,a) {
+                  return <RoomGroup group={s} units={s.units} key={s.id} />;
+                },this)}
+            </div>
         );
     }
 }); 
 
 var RoomGroup = React.createClass({
-   getInitialState: function() {
+    mixins: [DisplayMixin],
+    getInitialState: function() {
         return { expanded: false };
     },
     toggleShow: function(){
         this.setState({ expanded: !this.state.expanded });
     },
     render: function() {
+        var g           = this.props.group,
+            aptText     = this.maybePlural( g.spacesAvailableByType.Apartment, 'apartment' ),
+            suiteText   = this.maybePlural( g.spacesAvailableByType.Suite, 'suite' ),
+            dormText    = this.maybePlural( g.spacesAvailableByType.Dormitory, 'dorm' ),
+            bedsText    = this.maybePlural( this.props.group.availableSpaceCount, 'bed' );
+
         return (
             <div className="bu_collapsible_container" style={{ overflow : 'hidden' }}>
                 <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
                     <span className="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> &nbsp;
                     {this.props.group.name} &nbsp;
-                    <span className="group-room-summary">({this.props.group.availableRoomCount} rooms available)</span>
+                    <span className="group-room-summary">{bedsText} available: &nbsp;
+                        {aptText} | &nbsp;
+                        {suiteText} | &nbsp;
+                        {dormText}
+                        </span>
                 </h2>
-                <GroupTable rooms={this.props.rooms} expanded={this.state.expanded} />
+                <GroupTable units={this.props.units} expanded={this.state.expanded} />
             </div>
         );
     }
@@ -165,7 +187,7 @@ var GroupTable = React.createClass({
                         <th>More things</th>
                     </thead>
                     <tbody>
-                        {this.props.rooms.map(function(s,i) {
+                        {this.props.units.map(function(s,i) {
                           return <Row data={s} key={i} />;
                         })}
                     </tbody>

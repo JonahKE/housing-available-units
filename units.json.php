@@ -9,12 +9,8 @@ if( !empty($_GET['bootstrap']) ){
 }
 
 $data = array(
-    'metaData'          => array(
-        'name' => 'test',
-        'template' => 'test2'
-        ),
+    'metaData'          => array( 'name' => 'test', 'template' => 'test2' ),
     'areas'             => array(),
-    'units'             => array(),
     'totalRoomCount'    => 0,
     );
 
@@ -26,72 +22,77 @@ $specialty      = array( 'Chinese House', 'Special House One', 'Special House Tw
 
 foreach ( range('A', 'C') as $l ) {
     $areaID = 'area'.$l;
-    $data['areas'][$areaID] = array(
+    $area = array(
+        'id'                    => $areaID,
         'name'                  => 'Area ' . $l,
         'roomCount'             => 0,
         'availableSpaceCount'   => 0,
         'totalSpaceCount'       => 0,
         'spacesAvailableByType' => array(),
-    );
-
-    foreach ($roomTypes as $rt) {
-        $data['areas'][$areaID]['spacesAvailableByType'][$rt] = 0;
-    }
-}
-
-while ( rand(8,15) > $data['totalRoomCount'] ) {
-    $rw = array_rand( $words );
-    $streetNum              = rand(1,1000);
-    $roomType               = $roomTypes[ rand(0,2) ];
-    $unit                   = sprintf( "%d %s%s%s-%d", $streetNum, chr(65+rand(0,5)),chr(65+rand(0,5)),chr(65+rand(0,5)),str_pad( rand(1,1000), 4, "0", STR_PAD_LEFT) );
-    $area                   = array_rand( $data['areas'] );
-
-    $data['units'][$unit]   = array(
-        'area'                  => $area,
-        'location'              => sprintf( "%d %s %s street", $streetNum, $words[ $rw[0] ], $words[ $rw[1] ] ),
-        'floor'                 => rand(1,5),
-        'unitTotalSpaces'       => 0,
-        'unitAvailableSpaces'   => 0,
-        'gender'                => $gender[ rand(0,2) ],
-        'specialty'             => $specialty[ rand(0,2) ],
-        'rooms'                 => array(),
-        'spacesAvailableByType' => array(),
+        'unitCount'             => rand(8,15),
+        'units'                 => array(),
         );
 
     foreach ($roomTypes as $rt) {
-        $data['units'][$unit]['spacesAvailableByType'][$rt] = 0;
+        $area['spacesAvailableByType'][$rt] = 0;
     }
 
-    while ( rand(1,3) > count( $data['units'][$unit]['rooms'] ) ) {
-        $room               = chr(65+rand(0,5));
-        $spacesCount        = array_search( $roomType, $roomTypes ) + 1;
-        $spacesAvailCount   = ( $spacesCount - rand(1,$spacesCount) );
-        $roomID             = sprintf( "%s-%s", $unit, $room );
-        $roomType           = $roomTypes[ rand(0,2) ];
+    while ( $area['unitCount'] > count( $area['units'] ) ) {
+        $rw = array_rand( $words );
+        $streetNum              = rand(1,1000);
+        $roomType               = $roomTypes[ rand(0,2) ];
+        $unitID                 = sprintf( "%d %s%s%s-%d", $streetNum, chr(65+rand(0,5)),chr(65+rand(0,5)),chr(65+rand(0,5)),str_pad( rand(1,1000), 4, "0", STR_PAD_LEFT) );
 
-        $data['units'][$unit]['rooms'][] = array(
-            // 'key'                    => $data['totalRoomCount'],
-            'id'                    => $roomID,
-            'summaryRoomType'       => $roomType,
-            'roomType'              => sprintf( "%s-%dPerson-%s", $roomType, $spacesCount, $roomTypeNum[ rand(0,3) ] ),
-            'room'                  => $room,
-            'roomTotalSpaces'       => $spacesCount,
-            'roomAvailableSpaces'   => $spacesAvailCount,
+        $unit = array(
+            'id'                    => $unitID,
+            'location'              => sprintf( "%d %s %s street", $streetNum, $words[ $rw[0] ], $words[ $rw[1] ] ),
+            'floor'                 => rand(1,5),
+            'unitTotalSpaces'       => 0,
+            'unitAvailableSpaces'   => 0,
+            'gender'                => $gender[ rand(0,2) ],
+            'specialty'             => $specialty[ rand(0,2) ],
+            'roomCount'             => rand(1,3),
+            'rooms'                 => array(),
+            'spacesAvailableByType' => array(),
             );
 
-        $data['totalRoomCount']++;
-        $data['units'][$unit]['unitTotalSpaces'] += $spacesCount;
-        $data['units'][$unit]['unitAvailableSpaces'] += $spacesAvailCount;
-        $data['units'][$unit]['spacesAvailableByType'][$roomType] += $spacesAvailCount;
-    }
+        foreach ($roomTypes as $rt) {
+            $unit['spacesAvailableByType'][$rt] = 0;
+        }
 
-    $data['areas'][$area]['roomCount']++;
-    $data['areas'][$area]['availableSpaceCount'] = $data['units'][$unit]['unitAvailableSpaces'];
-    $data['areas'][$area]['totalSpaceCount'] = $data['units'][$unit]['unitTotalSpaces'];
-    
-    foreach ($roomTypes as $rt) {
-        $data['areas'][$area]['spacesAvailableByType'][$rt] += $data['units'][$unit]['spacesAvailableByType'][$rt];
+        while ( $unit['roomCount'] > count( $unit['rooms'] ) ) {
+            $room               = chr(65+rand(0,5));
+            $spacesCount        = array_search( $roomType, $roomTypes ) + 1;
+            $spacesAvailCount   = ( $spacesCount - rand(1,$spacesCount) );
+            $roomID             = sprintf( "%s-%s", $unitID, $room );
+            $roomType           = $roomTypes[ rand(0,2) ];
+
+            $unit['rooms'][] = array(
+                // 'key'                    => $data['totalRoomCount'],
+                'id'                    => $roomID,
+                'summaryRoomType'       => $roomType,
+                'roomType'              => sprintf( "%s-%dPerson-%s", $roomType, $spacesCount, $roomTypeNum[ rand(0,3) ] ),
+                'room'                  => $room,
+                'roomTotalSpaces'       => $spacesCount,
+                'roomAvailableSpaces'   => $spacesAvailCount,
+                );
+
+            $data['totalRoomCount']++;
+            $unit['unitTotalSpaces'] += $spacesCount;
+            $unit['unitAvailableSpaces'] += $spacesAvailCount;
+            $unit['spacesAvailableByType'][$roomType] += $spacesAvailCount;
+        }
+
+        $area['roomCount']++;
+        $area['availableSpaceCount'] += $unit['unitAvailableSpaces'];
+        $area['totalSpaceCount'] += $unit['unitTotalSpaces'];
+        
+        foreach ($roomTypes as $rt) {
+            $area['spacesAvailableByType'][$rt] += $unit['spacesAvailableByType'][$rt];
+        }
+        $area['units'][] = $unit;
     }
+    $data['areas'][] = $area;
 }
 
 header('Access-Control-Allow-Origin: *');
