@@ -87,7 +87,7 @@ var Housing = React.createClass({
         if( theTicker.isMounted() ){
             theTicker.stopTicking();
         }
-        $.getJSON('http://awbauer.cms-devl.bu.edu/nonwp/test3.json.php', function(r){
+        $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', function(r){
             var now = new Date();
             if( r.hasOwnProperty('groups') && r.hasOwnProperty('rooms') ){
                 // that.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
@@ -140,7 +140,11 @@ var RoomGroup = React.createClass({
     render: function() {
         return (
             <div className="bu_collapsible_container" style={{ overflow : 'hidden' }}>
-                <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>{this.props.group.name} <span className="group-room-summary">({this.props.group.availableRoomCount} rooms available)</span></h2>
+                <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
+                    <span className="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> &nbsp;
+                    {this.props.group.name} &nbsp;
+                    <span className="group-room-summary">({this.props.group.availableRoomCount} rooms available)</span>
+                </h2>
                 <GroupTable rooms={this.props.rooms} expanded={this.state.expanded} />
             </div>
         );
