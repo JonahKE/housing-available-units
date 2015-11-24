@@ -31,7 +31,12 @@ foreach ( range('A', 'C') as $l ) {
 		'roomCount' => 0,
 		'availableSpaceCount' => 0,
 		'totalSpaceCount' => 0,
+		'spacesAvailableByType' => array(),
 	);
+
+	foreach ($roomTypes as $rt) {
+		$data['areas']['area'.$l]['spacesAvailableByType'][$rt] = 0;
+	}
 }
 
 while ( rand(8,15) > $data['totalRoomCount'] ) {
@@ -50,18 +55,24 @@ while ( rand(8,15) > $data['totalRoomCount'] ) {
 		'gender'				=> $gender[ rand(0,2) ],
 		'specialty'				=> $specialty[ rand(0,2) ],
 		'rooms'					=> array(),
+		'spacesAvailableByType' => array(),
 		);
+
+	foreach ($roomTypes as $rt) {
+		$data['units'][$unit]['spacesAvailableByType'][$rt] = 0;
+	}
 
 	while ( rand(1,3) > count( $data['units'][$unit]['rooms'] ) ) {
 		$room 					= chr(65+rand(0,5));
 		$spacesCount 		= array_search( $roomType, $roomTypes ) + 1;
 		$spacesAvailCount 	= ( $spacesCount - rand(1,$spacesCount) );
-		$roomID 				= sprintf( "%s-%s", $unit, $room );
+		$roomID 			= sprintf( "%s-%s", $unit, $room );
+		$roomType 			= $roomTypes[ rand(0,2) ];
 
 		$data['units'][$unit]['rooms'][] = array(
 			// 'key'					=> $data['totalRoomCount'],
 			'id'					=> $roomID,
-			'summaryRoomType' 		=> $roomTypes[ rand(0,2) ],
+			'summaryRoomType' 		=> $roomType,
 			'roomType' 				=> sprintf( "%s-%dPerson-%s", $roomType, $spacesCount, $roomTypeNum[ rand(0,3) ] ),
 			'room'					=> $room,
 			'roomTotalSpaces'		=> $spacesCount,
@@ -71,11 +82,16 @@ while ( rand(8,15) > $data['totalRoomCount'] ) {
 		$data['totalRoomCount']++;
 		$data['units'][$unit]['unitTotalSpaces'] += $spacesCount;
 		$data['units'][$unit]['unitAvailableSpaces'] += $spacesAvailCount;
+		$data['units'][$unit]['spacesAvailableByType'][$roomType] += $spacesAvailCount;
 	}
 
 	$data['areas'][$area]['roomCount']++;
 	$data['areas'][$area]['availableSpaceCount'] = $data['units'][$unit]['unitAvailableSpaces'];
 	$data['areas'][$area]['totalSpaceCount'] = $data['units'][$unit]['unitTotalSpaces'];
+	
+	foreach ($roomTypes as $rt) {
+		$data['areas'][$area]['spacesAvailableByType'][$rt] += $data['units'][$unit]['spacesAvailableByType'][$rt];
+	}
 }
 
 header('Access-Control-Allow-Origin: *');
