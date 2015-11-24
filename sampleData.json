@@ -1,0 +1,39 @@
+{
+    "roomsExtract" : {
+        "createTime" : "JD 2457191.629914",
+        "rooms" : [
+            {
+                "roomId" : "133 BSR-0001-A",	
+                "area" : " Bay State Road Apartments ",
+                "summaryRoomType" : " Apartment ",
+                "roomType" : " Studio-2Person-Double ", 	
+                "roomLocation" : "133 Bay State Road",
+                "floor" : 1,
+                "unit" : "133 BSR-0001",	
+                "room" : "A",	
+                "roomTotalSpaces" : 2,
+                "roomAvailableSpaces" : 1,
+                "unitTotalSpaces" : 2,
+                "unitAvailableSpaces" : 1,
+                "gender" : "Female",
+                "specialty" : "Chinese House"
+            },
+            {
+                "roomId" : "133 BSR-0002-A",	
+                "area" : " Bay State Road Apartments ",
+                "summaryRoomType" : " Apartment ",
+                "roomType" : " Apartment-2Person-Single ", 	
+                "roomLocation" : "133 Bay State Road",
+                "floor" : 1,
+                "unit" : "133 BSR-0002",	
+                "room" : "A",	
+                "roomTotalSpaces" : 1,
+                "roomAvailableSpaces" : 0,
+                "unitTotalSpaces" : 2,
+                "unitAvailableSpaces" : 1,
+                "gender" : "Female",
+                "specialty" : "Chinese House"
+            }
+        ]
+    }
+}
