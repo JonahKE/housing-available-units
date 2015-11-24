@@ -1,3 +1,4 @@
+var updateInterval = 10;
 var DisplayMixin = {
     maybePlural: function( qty, singularLabel, pluralLabel ){
         if( 'undefined' === typeof pluralLabel ){
@@ -67,7 +68,7 @@ var Housing = React.createClass({
     },
     componentDidMount:function(){
         document.getElementById('loader').className = '';
-        this.updateDataEvery90();
+        this.doUpdateData();
     },
     titleChange: function( e ){
         this.setState({ title : e.target.value });
@@ -79,15 +80,14 @@ var Housing = React.createClass({
         var d = this.state.dataPending;
         this.setState({ areas : d.areas, units : d.units, roomCount : d.totalRoomCount, isDataPending: false, dataPending: null, lastDownloadTime: false });
     },
-    updateDataEvery90: function(){
-        var that = this,
-            t = 90;
+    doUpdateData: function(){
+        var that = this;
         if( theTicker.isMounted() ){
-            theTicker.startTicking( t );
+            theTicker.startTicking( updateInterval );
         }
         setTimeout(function(){
-            that.updateData( t );
-        }, t * 1000);
+            that.updateData( updateInterval );
+        }, updateInterval * 1000);
     },
     updateData: function(t){
         var that = this;
@@ -97,9 +97,9 @@ var Housing = React.createClass({
         }
         $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', function(r){
             var now = new Date();
-            if( r.hasOwnProperty('areas') && r.hasOwnProperty('units') ){
+            if( r.hasOwnProperty('areas') ){
                 // that.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
-                that.setState({ areas: r.areas, units: r.units, lastDownloadTime: new Date() });
+                that.setState({ areas: r.areas, lastDownloadTime: new Date() });
             }
             document.getElementById('loader').className = '';
             if( t > 0 ){
@@ -182,9 +182,9 @@ var GroupTable = React.createClass({
             <div className="bu_collapsible_section">
                 <table style={{listStyleType:'none'}}>
                     <thead>
-                        <th>Room ID</th>
-                        <th>Room Description</th>
-                        <th>More things</th>
+                        <th>Unit ID</th>
+                        <th>Unit Location</th>
+                        <th># Spaces Available</th>
                     </thead>
                     <tbody>
                         {this.props.units.map(function(s,i) {
@@ -199,15 +199,16 @@ var GroupTable = React.createClass({
  
 var Row = React.createClass({
     shouldComponentUpdate: function(nextProps, nextState){
-        return (nextProps.data.wasRecentlyTaken !== this.props.data.wasRecentlyTaken);
+        return (nextProps.data.unitAvailableSpaces !== this.props.data.unitAvailableSpaces);
     },
     render: function(){
-        var recentlyTakenClass = this.props.data.wasRecentlyTaken ? ' booked ' : '';
+        // console.log(this.props);
+        var recentlyTakenClass = ( this.props.data.unitAvailableSpaces > 0 ) ? '' : ' booked ';
         return (
             <tr className={recentlyTakenClass}>
-                <td>{this.props.data.key+1}</td>
-                <td>{this.props.data.name}</td>
-                <td>{this.props.data.details}</td>
+                <td>{this.props.data.id}</td>
+                <td>{this.props.data.location}</td>
+                <td>{this.props.data.unitAvailableSpaces}</td>
             </tr>
         );
     }

@@ -1,6 +1,9 @@
 <?php 
 ob_start("ob_gzhandler");
 
+define( 'UNITS_PER_AREA', 15 );
+define( 'ROOMS_PER_UNIT', 3 );
+
 if( !empty($_GET['bootstrap']) ){
     header('Content-Type: application/javascript');
     echo "var _bootstrap = ";
@@ -29,7 +32,7 @@ foreach ( range('A', 'C') as $l ) {
         'availableSpaceCount'   => 0,
         'totalSpaceCount'       => 0,
         'spacesAvailableByType' => array(),
-        'unitCount'             => rand(8,15),
+        'unitCount'             => UNITS_PER_AREA,
         'units'                 => array(),
         );
 
@@ -51,7 +54,7 @@ foreach ( range('A', 'C') as $l ) {
             'unitAvailableSpaces'   => 0,
             'gender'                => $gender[ rand(0,2) ],
             'specialty'             => $specialty[ rand(0,2) ],
-            'roomCount'             => rand(1,3),
+            'roomCount'             => ROOMS_PER_UNIT,
             'rooms'                 => array(),
             'spacesAvailableByType' => array(),
             );
