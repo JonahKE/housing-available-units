@@ -167,13 +167,13 @@ var RoomGroup = React.createClass({
                         {dormText}
                         </span>
                 </h2>
-                <GroupTable units={this.props.units} expanded={this.state.expanded} />
+                <AreaTable units={this.props.units} expanded={this.state.expanded} />
             </div>
         );
     }
 });
 
-var GroupTable = React.createClass({
+var AreaTable = React.createClass({
     render: function(){
         if( !this.props.expanded ){
             return <div />;
@@ -182,13 +182,18 @@ var GroupTable = React.createClass({
             <div className="bu_collapsible_section">
                 <table style={{listStyleType:'none'}}>
                     <thead>
-                        <th>Unit ID</th>
-                        <th>Unit Location</th>
+                        <th>Location</th>
+                        <th>Floor</th>
+                        <th>Unit #</th>
+                        // <th>Room Type</th>
+                        // <th>Room #</th>
                         <th># Spaces Available</th>
+                        <th>Gender</th>
+                        <th>Specialty</th>
                     </thead>
                     <tbody>
                         {this.props.units.map(function(s,i) {
-                          return <Row data={s} key={i} />;
+                          return <UnitRow data={s} key={i} />;
                         })}
                     </tbody>
                 </table>
@@ -196,8 +201,10 @@ var GroupTable = React.createClass({
             );
     }
 });
+
+// @todo - distinguish between unit/room data
  
-var Row = React.createClass({
+var UnitRow = React.createClass({
     shouldComponentUpdate: function(nextProps, nextState){
         return (nextProps.data.unitAvailableSpaces !== this.props.data.unitAvailableSpaces);
     },
@@ -206,9 +213,14 @@ var Row = React.createClass({
         var recentlyTakenClass = ( this.props.data.unitAvailableSpaces > 0 ) ? '' : ' booked ';
         return (
             <tr className={recentlyTakenClass}>
-                <td>{this.props.data.id}</td>
                 <td>{this.props.data.location}</td>
-                <td>{this.props.data.unitAvailableSpaces}</td>
+                <td>{this.props.data.floor}</td>
+                <td>{this.props.data.id}</td>
+                // <td>{this.props.data.roomType}</td> // Room data
+                // <td>{this.props.data.room}</td> // Room data
+                <td>{this.props.data.unitAvailableSpaces} of {this.props.data.unitTotalSpaces}</td>
+                <td>{this.props.data.gender}</td>
+                <td>{this.props.data.specialty}</td>
             </tr>
         );
     }

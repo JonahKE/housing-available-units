@@ -21,7 +21,7 @@ $words          = array( 'Sage', 'sedative', 'serene', 'servile', 'shackle', 'sl
 $roomTypes      = array( 'Apartment', 'Suite', 'Dormitory' );
 $roomTypeNum    = array( 'Single', 'Double', 'Triple', 'Quad' );
 $gender         = array( 'Male', 'Female', 'Gender Neutral' );
-$specialty      = array( 'Chinese House', 'Special House One', 'Special House Two' );
+$specialty      = array( '', 'Chinese House', 'Special House One' );
 
 foreach ( range('A', 'C') as $l ) {
     $areaID = 'area'.$l;
