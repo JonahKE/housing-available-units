@@ -1,7 +1,7 @@
 <?php 
 ob_start("ob_gzhandler");
 
-define( 'UNITS_PER_AREA', 15 );
+define( 'UNITS_PER_AREA', 10 );
 define( 'ROOMS_PER_UNIT', 3 );
 
 if( !empty($_GET['bootstrap']) ){
@@ -10,6 +10,8 @@ if( !empty($_GET['bootstrap']) ){
 } else {
     header('Content-Type: application/json');
 }
+
+header('Access-Control-Allow-Origin: *');
 
 $data = array(
     'metaData'          => array( 'name' => 'test', 'template' => 'test2' ),
@@ -44,7 +46,7 @@ foreach ( range('A', 'C') as $l ) {
         $rw = array_rand( $words );
         $streetNum              = rand(1,1000);
         $roomType               = $roomTypes[ rand(0,2) ];
-        $unitID                 = sprintf( "%d %s%s%s-%d", $streetNum, chr(65+rand(0,5)),chr(65+rand(0,5)),chr(65+rand(0,5)),str_pad( rand(1,1000), 4, "0", STR_PAD_LEFT) );
+        $unitID                 = sprintf( "%d %s%s%s%s-%d", $streetNum, chr(65+rand(0,20)),chr(65+rand(0,20)),chr(65+rand(0,20)),chr(65+rand(0,20)),str_pad( rand(1,1000), 4, "0", STR_PAD_LEFT) );
 
         $unit = array(
             'id'                    => $unitID,
@@ -64,7 +66,7 @@ foreach ( range('A', 'C') as $l ) {
         }
 
         while ( $unit['roomCount'] > count( $unit['rooms'] ) ) {
-            $room               = chr(65+rand(0,5));
+            $room               = chr(65+rand(0,20));
             $spacesCount        = array_search( $roomType, $roomTypes ) + 1;
             $spacesAvailCount   = ( $spacesCount - rand(1,$spacesCount) );
             $roomID             = sprintf( "%s-%s", $unitID, $room );
@@ -93,12 +95,11 @@ foreach ( range('A', 'C') as $l ) {
         foreach ($roomTypes as $rt) {
             $area['spacesAvailableByType'][$rt] += $unit['spacesAvailableByType'][$rt];
         }
+
         $area['units'][] = $unit;
     }
     $data['areas'][] = $area;
 }
-
-header('Access-Control-Allow-Origin: *');
 
 echo json_encode($data);
 

@@ -1,4 +1,4 @@
-var updateInterval = 10;
+var updateInterval = 30;
 var DisplayMixin = {
     maybePlural: function( qty, singularLabel, pluralLabel ){
         if( 'undefined' === typeof pluralLabel ){
@@ -53,22 +53,81 @@ var Ticker = React.createClass({
 });
 var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
  
- 
+var FilterBar = React.createClass({ 
+    render: function(){
+        var f = this.props.filters;
+        return (
+                <div>
+                    <h2>Filter by...</h2>
+                    <div>
+                        <h3>Gender</h3>
+                        <label><input type="checkbox" checked={f.genders.Female} name="genders" value="Female" onChange={this.props.updateFilters} /> Female</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.genders.Male} name="genders" value="Male" onChange={this.props.updateFilters} /> Male</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.genders['Gender Neutral']} name="genders" value="Gender Neutral" onChange={this.props.updateFilters} /> Gender Neutral</label> &nbsp;
+                    </div>
+                    <div>
+                        <h3>Room Size <span style={{fontSize:'0.5em',fontStyle:'italic'}}>Not 100% accurate -- due to demo data</span></h3>
+                        <label><input type="checkbox" checked={f.roomMaxOcc['1']} name="roomMaxOcc" value="1" onChange={this.props.updateFilters} /> Single</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.roomMaxOcc['2']} name="roomMaxOcc" value="2" onChange={this.props.updateFilters} /> Double</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.roomMaxOcc['3']} name="roomMaxOcc" value="3" onChange={this.props.updateFilters} /> Triple</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.roomMaxOcc['4']} name="roomMaxOcc" value="4" onChange={this.props.updateFilters} /> Quad</label>
+                    </div>
+                    <div>
+                        <h3>Unit Type</h3>
+                        <label><input type="checkbox" checked={f.roomTypes['Apartment']} name="roomTypes" value="Apartment" onChange={this.props.updateFilters} /> Apartment</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.roomTypes['Suite']} name="roomTypes" value="Suite" onChange={this.props.updateFilters} /> Suite</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.roomTypes['Dormitory']} name="roomTypes" value="Dormitory" onChange={this.props.updateFilters} /> Dormitory</label> | &nbsp;
+                    </div>
+                    <div>
+                        <h3>Specialty Housing <span style={{fontSize:'0.5em',fontStyle:'italic'}}>Work in progress</span></h3>
+                    </div>
+                </div>
+            );
+    }
+});
+
 var Housing = React.createClass({
+    mixins: [DisplayMixin],
     getInitialState: function() {
         return { 
-            title : _bootstrap.metaData.name, 
-            areas : _bootstrap.areas, 
-            units : _bootstrap.units, 
-            roomCount : _bootstrap.totalRoomCount, 
-            isDataPending: false, 
-            dataPending: null, 
-            lastDownloadTime: new Date() 
+            title               : _bootstrap.metaData.name, 
+            areas               : _bootstrap.areas, 
+            units               : _bootstrap.units, 
+            roomCount           : _bootstrap.totalRoomCount, 
+            isDataPending       : false, 
+            dataPending         : null, 
+            lastDownloadTime    : new Date(),
+            filtersActive       : false,
+            filters : {
+                'roomMaxOcc' : {
+                    '1' : true,
+                    '2' : true,
+                    '3' : true,
+                    '4' : true
+                },
+                'specialty' : {
+                    'Chinese House'     : true, 
+                    'Special House One' : true
+                },
+                'roomTypes' : {
+                    'Apartment' : true, 
+                    'Suite'     : true, 
+                    'Dormitory' : true
+                },
+                'genders' : {
+                    'Male'              : true,
+                    'Female'            : true,
+                    'Gender Neutral'    : true
+                }
+            }
         };
     },
     componentDidMount:function(){
         document.getElementById('loader').className = '';
         this.doUpdateData();
+
+        /* REMOVE for launch */
+        // jQuery('h2.bu_collapsible').first().click();
     },
     titleChange: function( e ){
         this.setState({ title : e.target.value });
@@ -97,54 +156,62 @@ var Housing = React.createClass({
         }
         $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', function(r){
             var now = new Date();
-            if( r.hasOwnProperty('areas') ){
+            if ( r.hasOwnProperty( 'areas' ) ){
                 // that.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
                 that.setState({ areas: r.areas, lastDownloadTime: new Date() });
             }
-            document.getElementById('loader').className = '';
-            if( t > 0 ){
-                if( theTicker.isMounted() ){
+            document.getElementById( 'loader' ).className = '';
+            if ( t > 0 ){
+                if ( theTicker.isMounted() ){
                     theTicker.startTicking( t );
                 }
-                setTimeout(function(){
+                setTimeout( function(){
                     that.updateData( t );
-                }, (t*1000));
+                }, ( t * 1000 ) );
             }
         }.bind(this));
     },
+    updateFilters: function( e ) {
+        var filterGroup = e.target.name,
+            filterProp = e.target.value,
+            filterValue = e.target.checked;
+
+        switch ( e.target.type ){
+            case 'checkbox':
+                this.setState( previousState => {
+                    var initial = this.getInitialState();
+
+                    previousState.filters[filterGroup][filterProp] = filterValue;
+                    previousState.filtersActive = ( JSON.stringify( previousState.filters ) !== JSON.stringify( initial.filters ) );
+                });
+        }
+    },
+    renderAreas: function(s,i,a) {
+        return <Area group={s} units={s.units} key={s.id} filters={this.state.filters} filtersActive={this.state.filtersActive} />;
+    },
     render: function(){
         var applyDataDisplay = this.state.isDataPending ? '' : 'none',
-            that = this;
+            timestampISO = this.state.lastDownloadTime.toISOString(),
+            friendlyTimestamp = moment( timestampISO ).fromNow(), 
+            areasText = this.maybePlural( this.state.areas.length, 'area' ), 
+            bedsText = this.maybePlural( this.state.roomCount, 'bed' );
         return (
             <div>
-                <span className="last-updated">Last updated <span className="time" data-timestamp={this.state.lastDownloadTime.toISOString()}>{moment(this.state.lastDownloadTime.toISOString()).fromNow()}</span></span>
-                <RoomList areas={this.state.areas} units={this.state.units} roomCount={this.state.roomCount} />
+                <span className="last-updated">Last updated <span className="time" data-timestamp={timestampISO}>{friendlyTimestamp}</span></span>
+                <div className='loaded-units-count'>Loaded {areasText} containing {bedsText}</div>
+                <FilterBar filters={this.state.filters} updateFilters={this.updateFilters} />
+                { this.state.areas.map( this.renderAreas, this ) }
             </div>
         );
     }
 });
- 
-var RoomList = React.createClass({
-    mixins: [DisplayMixin],
-    render: function() {
-        var areasText = this.maybePlural( this.props.areas.length, 'area' ), 
-            unitsText = this.maybePlural( this.props.roomCount, 'unit' );
-        return (
-            <div>
-                <div className='loaded-units-count'>Loaded {areasText} containing {unitsText}</div>
-                <br /><br />
-                {this.props.areas.map(function(s,i,a) {
-                  return <RoomGroup group={s} units={s.units} key={s.id} />;
-                },this)}
-            </div>
-        );
-    }
-}); 
 
-var RoomGroup = React.createClass({
+var Area = React.createClass({
     mixins: [DisplayMixin],
     getInitialState: function() {
-        return { expanded: false };
+        return { 
+            expanded: false
+        };
     },
     toggleShow: function(){
         this.setState({ expanded: !this.state.expanded });
@@ -154,73 +221,92 @@ var RoomGroup = React.createClass({
             aptText     = this.maybePlural( g.spacesAvailableByType.Apartment, 'apartment' ),
             suiteText   = this.maybePlural( g.spacesAvailableByType.Suite, 'suite' ),
             dormText    = this.maybePlural( g.spacesAvailableByType.Dormitory, 'dorm' ),
-            bedsText    = this.maybePlural( this.props.group.availableSpaceCount, 'bed' );
+            bedsText    = this.maybePlural( this.props.group.availableSpaceCount, 'bed' ),
+            arrow_icon  = 'glyphicon ' + ( this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right' ),
+            roomSummaryDisplay = ( this.props.filtersActive ) ? 'none' : 'initial',
+            filtersActiveDisplay = ( this.props.filtersActive ) ? 'initial' : 'none';
 
         return (
             <div className="bu_collapsible_container" style={{ overflow : 'hidden' }}>
                 <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
-                    <span className="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> &nbsp;
+                    <span className={arrow_icon} aria-hidden="true"></span> &nbsp;
                     {this.props.group.name} &nbsp;
-                    <span className="group-room-summary">{bedsText} available: &nbsp;
+                    <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>{bedsText} available: &nbsp;
                         {aptText} | &nbsp;
                         {suiteText} | &nbsp;
                         {dormText}
-                        </span>
+                    </span>
+                    <span className="filters-active"  style={{ display: filtersActiveDisplay }}>Filter(s) active</span>
                 </h2>
-                <AreaTable units={this.props.units} expanded={this.state.expanded} />
+                <AreaTable units={this.props.units} expanded={this.state.expanded} filters={this.props.filters} />
             </div>
         );
     }
 });
 
 var AreaTable = React.createClass({
+    isRoomVisible: function(unit,room){
+        console.log(this.props.filters);
+        return ( 
+                this.props.filters.roomTypes[ room.summaryRoomType ] &&
+                this.props.filters.roomMaxOcc[ room.roomTotalSpaces ] &&
+                this.props.filters.specialty[ unit.specialty ] &&
+                this.props.filters.genders[ unit.gender ]
+            );
+    },
     render: function(){
+        var rooms = [];
+
         if( !this.props.expanded ){
             return <div />;
         }
-        return(
+        
+        this.props.units.map( function( u, i ) {
+            var maybeTakenClass = ( u.unitAvailableSpaces > 0 ) ? '' : ' booked ';
+            u.rooms.map( function( r, j ){
+                if( this.isRoomVisible( u, r ) ){
+                    rooms.push( <Room data={r} unit={u} key={r.id} recentlyTakenClass={maybeTakenClass} /> );
+                }
+            }, this);
+        }, this);
+
+        return (
             <div className="bu_collapsible_section">
                 <table style={{listStyleType:'none'}}>
                     <thead>
                         <th>Location</th>
                         <th>Floor</th>
                         <th>Unit #</th>
-                        // <th>Room Type</th>
-                        // <th>Room #</th>
+                        <th>Room Type</th>
+                        <th>Room #</th>
                         <th># Spaces Available</th>
                         <th>Gender</th>
                         <th>Specialty</th>
                     </thead>
                     <tbody>
-                        {this.props.units.map(function(s,i) {
-                          return <UnitRow data={s} key={i} />;
-                        })}
+                        {rooms}
                     </tbody>
                 </table>
             </div>
-            );
+        );
     }
 });
-
-// @todo - distinguish between unit/room data
  
-var UnitRow = React.createClass({
-    shouldComponentUpdate: function(nextProps, nextState){
-        return (nextProps.data.unitAvailableSpaces !== this.props.data.unitAvailableSpaces);
+var Room = React.createClass({
+    shouldComponentUpdate: function( nextProps, nextState ){
+        return ( nextProps.unit.unitAvailableSpaces !== this.props.unit.unitAvailableSpaces );
     },
     render: function(){
-        // console.log(this.props);
-        var recentlyTakenClass = ( this.props.data.unitAvailableSpaces > 0 ) ? '' : ' booked ';
         return (
-            <tr className={recentlyTakenClass}>
-                <td>{this.props.data.location}</td>
-                <td>{this.props.data.floor}</td>
-                <td>{this.props.data.id}</td>
-                // <td>{this.props.data.roomType}</td> // Room data
-                // <td>{this.props.data.room}</td> // Room data
-                <td>{this.props.data.unitAvailableSpaces} of {this.props.data.unitTotalSpaces}</td>
-                <td>{this.props.data.gender}</td>
-                <td>{this.props.data.specialty}</td>
+            <tr className={this.props.recentlyTakenClass}>
+                <td>{this.props.unit.location}</td>
+                <td>{this.props.unit.floor}</td>
+                <td>{this.props.unit.id}</td>
+                <td>{this.props.data.roomType}</td>
+                <td>{this.props.data.room}</td>
+                <td>{this.props.unit.unitAvailableSpaces} of {this.props.unit.unitTotalSpaces}</td>
+                <td>{this.props.unit.gender}</td>
+                <td>{this.props.unit.specialty}</td>
             </tr>
         );
     }
