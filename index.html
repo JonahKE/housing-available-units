@@ -5,6 +5,9 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
 
 <style>
+  .last-updated{
+    display: none;
+  }
   .apply-data {
     float: right;
     background-color: red;
@@ -67,8 +70,15 @@
   }
   .filters-active{
     font-style: italic;
-    color: red;
-    
+    color: #FF0000;
+    font-size: 0.5em;
+  }
+  .filter-container{
+    overflow: auto;
+  }
+  .filter-group{
+    float: left;
+    width: 20%;
   }
 </style>
 
@@ -76,14 +86,12 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.1/react-with-addons.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.1/JSXTransformer.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
-<script type="text/javascript" src="http://www.bu.edu/housing/wp-content/plugins/bu-front-end-library/js/collapsible.js?ver=4.1.4"></script>
+<script type="text/javascript" src="http://awbauer.cms-devl.bu.edu/housing/wp-content/plugins/bu-front-end-library/js/collapsible.js?ver=4.1.4"></script>
 <!-- <script type="text/javascript" src="bootstrap.js"></script> -->
 <script type="text/javascript" src="http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php?bootstrap=1"></script>
-<script type="text/jsx" src="app.js"></script>
+<script type="text/jsx" src="http://awbauer.cms-devl.bu.edu/non-wp/housing/app.js"></script>
 <script>
     $.ajaxSetup({ cache: false });
-    $(function(){
-    });
 </script>
 <div class="container">
   <div id="loader" class="active">Loading...</div>

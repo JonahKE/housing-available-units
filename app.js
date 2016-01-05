@@ -9,12 +9,17 @@ var DisplayMixin = {
 };
 var Ticker = React.createClass({
   getInitialState: function() {
-    return {};
+    return {
+        secondsLeft : updateInterval
+    };
   },
   tick: function() {
+    if( !this.isMounted() ){
+        return;
+    }
     var left = this.state.secondsLeft - 1;
     
-    this.updateMoment();
+    // this.updateMoment();
     
     if( left != parseInt(left) || 0 >= left ){
         this.stopTicking();
@@ -23,7 +28,8 @@ var Ticker = React.createClass({
     this.setState({secondsLeft: left}); 
   },
   updateMoment: function(){
-    var timeSince = document.querySelector('.last-updated .time');
+    var timeSince = document.querySelector('.last-updated .time'),
+        newText;
 
     if( undefined === timeSince.dataset.timestamp ){
         return;
@@ -38,11 +44,21 @@ var Ticker = React.createClass({
     timeSince.innerHTML = newText;   
   },
   startTicking: function( t ){
-     this.setState({secondsLeft: t});
-    this.interval = setInterval(this.tick, 1000);
+    if( !this.isMounted() ){
+        return;
+    }
+    
+    if( t !== updateInterval ){
+        this.setState({secondsLeft: t});
+    }
+
+    this.interval = setInterval( this.tick, 1000 );
   },
   stopTicking: function(){
     clearInterval(this.interval);
+    if( !this.isMounted() ){
+        return;
+    }
     this.setState({secondsLeft: 'NOW'});
   },
   render: function() {
@@ -56,30 +72,31 @@ var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
 var FilterBar = React.createClass({ 
     render: function(){
         var f = this.props.filters;
+
         return (
-                <div>
+                <div className="filter-container">
                     <h2>Filter by...</h2>
-                    <div>
+                    <div className="filter-group">
                         <h3>Gender</h3>
-                        <label><input type="checkbox" checked={f.genders.Female} name="genders" value="Female" onChange={this.props.updateFilters} /> Female</label> | &nbsp;
-                        <label><input type="checkbox" checked={f.genders.Male} name="genders" value="Male" onChange={this.props.updateFilters} /> Male</label> | &nbsp;
-                        <label><input type="checkbox" checked={f.genders['Gender Neutral']} name="genders" value="Gender Neutral" onChange={this.props.updateFilters} /> Gender Neutral</label> &nbsp;
+                        <label><input type="checkbox" checked={f.genders.Female} name="genders" value="Female" onChange={this.props.updateFilters} /> Female</label> <br />
+                        <label><input type="checkbox" checked={f.genders.Male} name="genders" value="Male" onChange={this.props.updateFilters} /> Male</label> <br />
+                        <label><input type="checkbox" checked={f.genders['Gender Neutral']} name="genders" value="Gender Neutral" onChange={this.props.updateFilters} /> Gender Neutral</label>
                     </div>
-                    <div>
-                        <h3>Room Size <span style={{fontSize:'0.5em',fontStyle:'italic'}}>Not 100% accurate -- due to demo data</span></h3>
-                        <label><input type="checkbox" checked={f.roomMaxOcc['1']} name="roomMaxOcc" value="1" onChange={this.props.updateFilters} /> Single</label> | &nbsp;
-                        <label><input type="checkbox" checked={f.roomMaxOcc['2']} name="roomMaxOcc" value="2" onChange={this.props.updateFilters} /> Double</label> | &nbsp;
-                        <label><input type="checkbox" checked={f.roomMaxOcc['3']} name="roomMaxOcc" value="3" onChange={this.props.updateFilters} /> Triple</label> | &nbsp;
+                    <div className="filter-group">
+                        <h3>Room Size <br /> <span style={{fontSize:'0.5em',fontStyle:'italic'}}>Not 100% accurate (due to limitations of sample data)</span></h3>
+                        <label><input type="checkbox" checked={f.roomMaxOcc['1']} name="roomMaxOcc" value="1" onChange={this.props.updateFilters} /> Single</label> <br />
+                        <label><input type="checkbox" checked={f.roomMaxOcc['2']} name="roomMaxOcc" value="2" onChange={this.props.updateFilters} /> Double</label> <br />
+                        <label><input type="checkbox" checked={f.roomMaxOcc['3']} name="roomMaxOcc" value="3" onChange={this.props.updateFilters} /> Triple</label> <br />
                         <label><input type="checkbox" checked={f.roomMaxOcc['4']} name="roomMaxOcc" value="4" onChange={this.props.updateFilters} /> Quad</label>
                     </div>
-                    <div>
+                    <div className="filter-group">
                         <h3>Unit Type</h3>
-                        <label><input type="checkbox" checked={f.roomTypes['Apartment']} name="roomTypes" value="Apartment" onChange={this.props.updateFilters} /> Apartment</label> | &nbsp;
-                        <label><input type="checkbox" checked={f.roomTypes['Suite']} name="roomTypes" value="Suite" onChange={this.props.updateFilters} /> Suite</label> | &nbsp;
-                        <label><input type="checkbox" checked={f.roomTypes['Dormitory']} name="roomTypes" value="Dormitory" onChange={this.props.updateFilters} /> Dormitory</label> | &nbsp;
+                        <label><input type="checkbox" checked={f.roomTypes['Apartment']} name="roomTypes" value="Apartment" onChange={this.props.updateFilters} /> Apartment</label><br />
+                        <label><input type="checkbox" checked={f.roomTypes['Suite']} name="roomTypes" value="Suite" onChange={this.props.updateFilters} /> Suite</label><br />
+                        <label><input type="checkbox" checked={f.roomTypes['Dormitory']} name="roomTypes" value="Dormitory" onChange={this.props.updateFilters} /> Dormitory</label>
                     </div>
-                    <div>
-                        <h3>Specialty Housing <span style={{fontSize:'0.5em',fontStyle:'italic'}}>Work in progress</span></h3>
+                    <div className="filter-group">
+                        <h3>Specialty Housing <br /> <span style={{fontSize:'0.5em',fontStyle:'italic'}}>Work in progress</span></h3>
                     </div>
                 </div>
             );
@@ -125,24 +142,11 @@ var Housing = React.createClass({
     componentDidMount:function(){
         document.getElementById('loader').className = '';
         this.doUpdateData();
-
-        /* REMOVE for launch */
-        // jQuery('h2.bu_collapsible').first().click();
-    },
-    titleChange: function( e ){
-        this.setState({ title : e.target.value });
-    },
-    applyPendingData: function(){
-        if( !this.state.isDataPending ){
-            return;
-        }
-        var d = this.state.dataPending;
-        this.setState({ areas : d.areas, units : d.units, roomCount : d.totalRoomCount, isDataPending: false, dataPending: null, lastDownloadTime: false });
     },
     doUpdateData: function(){
         var that = this;
         if( theTicker.isMounted() ){
-            theTicker.startTicking( updateInterval );
+            theTicker.startTicking();
         }
         setTimeout(function(){
             that.updateData( updateInterval );
@@ -246,7 +250,7 @@ var Area = React.createClass({
 
 var AreaTable = React.createClass({
     isRoomVisible: function(unit,room){
-        console.log(this.props.filters);
+        // console.log(this.props.filters);
         return ( 
                 this.props.filters.roomTypes[ room.summaryRoomType ] &&
                 this.props.filters.roomMaxOcc[ room.roomTotalSpaces ] &&

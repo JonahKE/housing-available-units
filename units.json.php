@@ -1,7 +1,7 @@
 <?php 
 ob_start("ob_gzhandler");
 
-define( 'UNITS_PER_AREA', 10 );
+define( 'UNITS_PER_AREA', 100 );
 define( 'ROOMS_PER_UNIT', 3 );
 
 if( !empty($_GET['bootstrap']) ){
@@ -25,7 +25,7 @@ $roomTypeNum    = array( 'Single', 'Double', 'Triple', 'Quad' );
 $gender         = array( 'Male', 'Female', 'Gender Neutral' );
 $specialty      = array( '', 'Chinese House', 'Special House One' );
 
-foreach ( range('A', 'C') as $l ) {
+foreach ( range('A', 'F') as $l ) {
     $areaID = 'area'.$l;
     $area = array(
         'id'                    => $areaID,
