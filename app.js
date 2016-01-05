@@ -1,4 +1,4 @@
-var updateInterval = 30;
+var updateInterval = 10;
 var DisplayMixin = {
     maybePlural: function( qty, singularLabel, pluralLabel ){
         if( 'undefined' === typeof pluralLabel ){
@@ -67,7 +67,7 @@ var Ticker = React.createClass({
     );
   }
 });
-var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
+//var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
  
 var FilterBar = React.createClass({ 
     render: function(){
@@ -141,38 +141,19 @@ var Housing = React.createClass({
     },
     componentDidMount:function(){
         document.getElementById('loader').className = '';
-        this.doUpdateData();
-    },
-    doUpdateData: function(){
-        var that = this;
-        if( theTicker.isMounted() ){
-            theTicker.startTicking();
-        }
-        setTimeout(function(){
-            that.updateData( updateInterval );
-        }, updateInterval * 1000);
+        setTimeout( this.updateData, updateInterval * 1000);
     },
     updateData: function(t){
-        var that = this;
         document.getElementById('loader').className = 'active';
-        if( theTicker.isMounted() ){
-            theTicker.stopTicking();
-        }
+
         $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', function(r){
             var now = new Date();
             if ( r.hasOwnProperty( 'areas' ) ){
-                // that.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
-                that.setState({ areas: r.areas, lastDownloadTime: new Date() });
+                // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
+                this.setState({ areas: r.areas, lastDownloadTime: new Date() });
             }
             document.getElementById( 'loader' ).className = '';
-            if ( t > 0 ){
-                if ( theTicker.isMounted() ){
-                    theTicker.startTicking( t );
-                }
-                setTimeout( function(){
-                    that.updateData( t );
-                }, ( t * 1000 ) );
-            }
+            setTimeout( this.updateData, updateInterval * 1000 );
         }.bind(this));
     },
     updateFilters: function( e ) {
