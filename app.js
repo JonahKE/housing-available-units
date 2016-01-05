@@ -143,7 +143,7 @@ var Housing = React.createClass({
         document.getElementById('loader').className = '';
         setTimeout( this.updateData, updateInterval * 1000);
     },
-    updateData: function(t){
+    updateData: function(){
         document.getElementById('loader').className = 'active';
 
         $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', function(r){
@@ -179,11 +179,11 @@ var Housing = React.createClass({
             timestampISO = this.state.lastDownloadTime.toISOString(),
             friendlyTimestamp = moment( timestampISO ).fromNow(), 
             areasText = this.maybePlural( this.state.areas.length, 'area' ), 
-            bedsText = this.maybePlural( this.state.roomCount, 'bed' );
+            unitsText = this.maybePlural( this.state.roomCount, 'unit' );
         return (
             <div>
                 <span className="last-updated">Last updated <span className="time" data-timestamp={timestampISO}>{friendlyTimestamp}</span></span>
-                <div className='loaded-units-count'>Loaded {areasText} containing {bedsText}</div>
+                <div className='loaded-units-count'>Loaded {areasText} containing {unitsText}</div>
                 <FilterBar filters={this.state.filters} updateFilters={this.updateFilters} />
                 { this.state.areas.map( this.renderAreas, this ) }
             </div>
@@ -206,7 +206,7 @@ var Area = React.createClass({
             aptText     = this.maybePlural( g.spacesAvailableByType.Apartment, 'apartment' ),
             suiteText   = this.maybePlural( g.spacesAvailableByType.Suite, 'suite' ),
             dormText    = this.maybePlural( g.spacesAvailableByType.Dormitory, 'dorm' ),
-            bedsText    = this.maybePlural( this.props.group.availableSpaceCount, 'bed' ),
+            unitsText    = this.maybePlural( this.props.group.availableSpaceCount, 'unit' ),
             arrow_icon  = 'glyphicon ' + ( this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right' ),
             roomSummaryDisplay = ( this.props.filtersActive ) ? 'none' : 'initial',
             filtersActiveDisplay = ( this.props.filtersActive ) ? 'initial' : 'none';
@@ -216,7 +216,7 @@ var Area = React.createClass({
                 <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
                     <span className={arrow_icon} aria-hidden="true"></span> &nbsp;
                     {this.props.group.name} &nbsp;
-                    <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>{bedsText} available: &nbsp;
+                    <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>{unitsText} available: &nbsp;
                         {aptText} | &nbsp;
                         {suiteText} | &nbsp;
                         {dormText}
