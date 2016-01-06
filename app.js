@@ -278,12 +278,32 @@ var AreaTable = React.createClass({
 });
  
 var Room = React.createClass({
+    getInitialState: function() {
+        return { 
+            hidden          : ( ! this.props.unit.unitAvailableSpaces ),
+            recentlyTaken   : false
+        };
+    },
     shouldComponentUpdate: function( nextProps, nextState ){
         return ( nextProps.unit.unitAvailableSpaces !== this.props.unit.unitAvailableSpaces );
     },
+    componentWillReceiveProps: function(nextProps){
+        if( this.props.unit.unitAvailableSpaces > 0 && !nextProps.unit.unitAvailableSpaces ){
+            this.setState({
+                hidden : false,
+                recentlyTaken: true
+            });
+        }
+    },
     render: function(){
+        var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '';
+        
+        if( this.state.hidden ){
+            return false;
+        }
+
         return (
-            <tr className={this.props.recentlyTakenClass}>
+            <tr className={recentlyTakenClass}>
                 <td>{this.props.unit.location}</td>
                 <td>{this.props.unit.floor}</td>
                 <td>{this.props.unit.id}</td>
