@@ -6,6 +6,7 @@
             {
                 "areaID" : "Comm Ave Apartments",
                 "name" : "Area A",
+                "buildings" : [ "133 Bay State Road", "133 Comm Ave", "883 Main St", "Building Seven" ],
                 "roomCount" : 0,
                 "availableSpaceCount" : 0,
                 "totalSpaceCount" : 0,
@@ -74,6 +75,7 @@
             {
                 "areaID" : "Bay State Road Apartments",
                 "name" : "Area B",
+                "buildings" : [ "133 Bay State Road", "133 Comm Ave", "883 Main St", "Building Seven" ],
                 "roomCount" : 1,
                 "availableSpaceCount" : 2,
                 "totalSpaceCount" : 5,
