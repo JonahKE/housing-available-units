@@ -276,7 +276,7 @@ class Housing_Available_Units {
 	/**
 	 * Returns a matching housing code with $code using self::$housing_codes
 	 * @param  string $code 3-letter code
-	 * @return string|empty-string   definition if found
+	 * @return string       definition if found
 	 */
 	static function get_specialty_code( $code ) {
 		return isset( self::$housing_codes[$code] ) ? self::$housing_codes[$code] : '';
