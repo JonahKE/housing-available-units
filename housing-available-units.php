@@ -20,8 +20,8 @@ class Housing_Available_Units {
 
 	// constants
 	const PREFIX    = 'bu_hau_';
-	const SYNC_TIME = '3 am';
-	const SYNC_FREQ = 'daily';
+	const SPACES_SYNC_TIME = '3 am';
+	const SPACES_SYNC_FREQ = 'daily';
 	// regex
 	const GET_LAST_HSV  = '/-.*/';
 	const GET_FIRST_HSV = '/.*-/';
@@ -65,7 +65,7 @@ class Housing_Available_Units {
 	static function setup_sync() {
 		add_action( self::PREFIX . 'sync_daily', array( self, 'sync' ) );
 		if ( ! wp_next_scheduled( self::PREFIX . 'sync_daily' ) ) {
-			wp_schedule_event( strtotime( self::SYNC_TIME ), self::SYNC_FREQ, self::PREFIX . 'sync_daily' );
+			wp_schedule_event( strtotime( self::SPACES_SYNC_TIME ), self::SPACES_SYNC_FREQ, self::PREFIX . 'sync_daily' );
 		}
 	}
 
