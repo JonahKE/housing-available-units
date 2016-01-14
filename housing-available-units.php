@@ -171,6 +171,7 @@ class Housing_Available_Units {
 			if ( ! isset( self::$areas[$area_id] ) ) {
 				self::$areas[$area_id] = array(
 					'areaID'                => $area_id,
+					'buildings'             => array(),
 					'roomCount'             => 0,
 					'availableSpaceCount'   => 0,
 					'totalSpaceCount'       => 0,
@@ -191,6 +192,10 @@ class Housing_Available_Units {
 			self::$areas[$area_id]['spacesAvailableByType'][$summary_room_type]++;
 			if ( ! in_array( $summary_room_type, self::$space_types ) ) {
 				self::$space_types[] = $summary_room_type;
+			}
+
+			if ( ! in_array( $space['Room Location'], self::$areas[$area_id]['buildings'] ) ) {
+				self::$areas[$area_id]['buildings'][] = $space['Room Location'];
 			}
 
 			// units
