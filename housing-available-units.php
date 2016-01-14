@@ -107,8 +107,9 @@ class Housing_Available_Units {
 		if ( file_exists( $space_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $space_file , 'r' ) ) ) {
 				$headers = fgetcsv( $handle, 0, ',' );
+				$headers = array_map( 'trim', $headers );
 				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
-
+					$data = array_map( 'trim', $data );
 					// format: { 'Room': 'something', 'Type': 'else' }
 					$space = array();
 					for ( $c = 0; $c < count( $data ); $c++ ) {
@@ -123,6 +124,7 @@ class Housing_Available_Units {
 		if ( file_exists( $bookings_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $bookings_file , 'r' ) ) ) {
 				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
+					$data = array_map( 'trim', $data );
 					// format: [ 1, 2 ... 999 ]
 					self::$bookings[] = $data[0];
 				}
@@ -134,6 +136,7 @@ class Housing_Available_Units {
 			if ( FALSE !== ( $handle = fopen( $housing_codes_file , 'r' ) ) ) {
 				$headers = fgetcsv( $handle, 0, ',' );
 				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
+					$data = array_map( 'trim', $data );
 
 					if ( $data[2] == 'True' ) {
 						// ensure the code is active
