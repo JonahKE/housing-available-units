@@ -52,7 +52,7 @@ class Housing_Available_Units {
 
 		self::setup_sync();
 
-		if ( self::DEBUG && isset( $_GET['hau_sync'] ) ) {
+		if ( self::$debug && isset( $_GET['hau_sync'] ) ) {
 			echo self::sync();
 			die;
 		}
@@ -77,7 +77,7 @@ class Housing_Available_Units {
 	static function sync() {
 		self::$sync_start_time = current_time( 'mysql' );
 
-		if ( self::DEBUG ) {
+		if ( self::$debug ) {
 			$space_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_SPACE_FILE;
 			$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_BOOKINGS_FILE;
 			$housing_codes_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_HOUSING_CODES_FILE;
@@ -154,7 +154,7 @@ class Housing_Available_Units {
 	 */
 	static function process() {
 
-		if ( self::DEBUG && isset( $_GET['hau_limit'] ) ) {
+		if ( self::$debug && isset( $_GET['hau_limit'] ) ) {
 			array_splice( self::$spaces, intval( $_GET['hau_limit'] ) );
 		}
 
