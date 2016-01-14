@@ -9,6 +9,7 @@ Text Domain: housing-available-units
 */
 
 define( 'BU_HAU_MEDIA_DIR', '/housing-available-units/' );
+define( 'BU_HAU_MEDIA_UNITS_FILE', BU_HAU_MEDIA_DIR . 'units.json' );
 define( 'BU_HAU_SAMPLE_DIR', __DIR__ . '/sample/' );
 define( 'BU_HAU_SAMPLE_SPACE_FILE', 'Space File.csv' );
 define( 'BU_HAU_SAMPLE_BOOKINGS_FILE', 'Bookings.csv' );
@@ -283,21 +284,21 @@ class Housing_Available_Units {
 
 	/**
 	 * Writes the output to a WP media dir (relative to BU_HAU_MEDIA_DIR) file
-	 * @return [type] [description]
+	 * @return null
 	 */
 	static function write() {
 		$wp_upload_dir = wp_upload_dir();
-		$upload_path = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_DIR;
-		$filename = $upload_path . 'units.json';
+		$upload_file = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_FILE;
+		$upload_path = dirname( $upload_file );
 
 		if ( ! file_exists( $upload_path ) ) {
 			if ( ! wp_mkdir_p( $upload_path ) ) {
-				error_log( __FUNCTION__ . ': Failed to create dir for writing processed data.' );
+				error_log( __FUNCTION__ . ': Failed to create dir for writing processed data: ' . $upload_path );
 				return false;
 			}
 		}
 
-		$handle = fopen( $filename, 'w+' );
+		$handle = fopen( $upload_file, 'w+' );
 		fwrite($handle, json_encode( self::$output ) );
 		fclose($handle);
 	}
