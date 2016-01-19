@@ -19,6 +19,9 @@ define( 'BU_HAU_SAMPLE_HOUSING_CODES_FILE', 'Specialty Housing Codes.csv' );
 // define( 'BU_HAU_DEBUG', true );
 
 add_action( 'init', array( 'Housing_Available_Units', 'init' ), 99);
+add_action( 'wp_ajax_housing_availability', array( 'Housing_Available_Units', 'handle_ajax' ));
+add_action( 'wp_ajax_nopriv_housing_availability', array( 'Housing_Available_Units', 'handle_ajax' ));
+
 add_shortcode( 'housing_availability', array( 'Housing_Available_Units', 'do_shortcode' ) );
 
 class Housing_Available_Units {
@@ -64,7 +67,7 @@ class Housing_Available_Units {
 	}
 
 	/**
-	 * Setup sync schedules
+	 * Handle shortcode [housing_availability]
 	 * @return string containing React app
 	 */
 	static function do_shortcode( $atts, $content = '' ) {
@@ -84,6 +87,10 @@ class Housing_Available_Units {
 	}
 
 	/**
+	 * Return JSON for React app
+	 * @return string - full dataset in json form
+	 */
+	static function handle_ajax(){
 	 * Setup sync schedules
 	 * @return null
 	 */

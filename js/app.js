@@ -121,7 +121,7 @@ var FilterBar = React.createClass({
                 React.createElement(
                     'label',
                     null,
-                    React.createElement('input', { type: 'checkbox', checked: f.genders['Gender Neutral'], name: 'genders', value: 'Gender Neutral', onChange: this.props.updateFilters }),
+                    React.createElement('input', { type: 'checkbox', checked: f.genders['CoEd'], name: 'genders', value: 'CoEd', onChange: this.props.updateFilters }),
                     ' Gender Neutral'
                 )
             ),
@@ -131,14 +131,7 @@ var FilterBar = React.createClass({
                 React.createElement(
                     'h3',
                     null,
-                    'Room Size ',
-                    React.createElement('br', null),
-                    ' ',
-                    React.createElement(
-                        'span',
-                        { style: { fontSize: '0.5em', fontStyle: 'italic' } },
-                        'Not 100% accurate (due to limitations of sample data)'
-                    )
+                    'Room Size'
                 ),
                 React.createElement(
                     'label',
@@ -182,8 +175,8 @@ var FilterBar = React.createClass({
                 React.createElement(
                     'label',
                     null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Apartment'], name: 'roomTypes', value: 'Apartment', onChange: this.props.updateFilters }),
-                    ' Apartment'
+                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Apt'], name: 'roomTypes', value: 'Apt', onChange: this.props.updateFilters }),
+                    ' Apt'
                 ),
                 React.createElement('br', null),
                 React.createElement(
@@ -196,8 +189,15 @@ var FilterBar = React.createClass({
                 React.createElement(
                     'label',
                     null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Dormitory'], name: 'roomTypes', value: 'Dormitory', onChange: this.props.updateFilters }),
-                    ' Dormitory'
+                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Studio'], name: 'roomTypes', value: 'Studio', onChange: this.props.updateFilters }),
+                    ' Studio'
+                ),
+                React.createElement('br', null),
+                React.createElement(
+                    'label',
+                    null,
+                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Dorm'], name: 'roomTypes', value: 'Dorm', onChange: this.props.updateFilters }),
+                    ' Dorm'
                 )
             ),
             React.createElement(
@@ -206,14 +206,7 @@ var FilterBar = React.createClass({
                 React.createElement(
                     'h3',
                     null,
-                    'Specialty Housing ',
-                    React.createElement('br', null),
-                    ' ',
-                    React.createElement(
-                        'span',
-                        { style: { fontSize: '0.5em', fontStyle: 'italic' } },
-                        'Work in progress'
-                    )
+                    'Specialty Housing'
                 )
             )
         );
@@ -226,10 +219,10 @@ var Housing = React.createClass({
     mixins: [DisplayMixin],
     getInitialState: function getInitialState() {
         return {
-            title: _bootstrap.metaData.name,
-            areas: _bootstrap.areas,
-            units: _bootstrap.units,
-            roomCount: _bootstrap.totalRoomCount,
+            // title               : hau_opts._bootstrap.metaData.name,
+            areas: hau_opts._bootstrap.areas,
+            units: hau_opts._bootstrap.units,
+            roomCount: hau_opts._bootstrap.totalRoomCount,
             isDataPending: false,
             dataPending: null,
             lastDownloadTime: new Date(),
@@ -242,18 +235,20 @@ var Housing = React.createClass({
                     '4': true
                 },
                 'specialty': {
+                    '': true,
                     'Chinese House': true,
                     'Special House One': true
                 },
                 'roomTypes': {
-                    'Apartment': true,
+                    'Apt': true,
                     'Suite': true,
-                    'Dormitory': true
+                    'Studio': true,
+                    'Dorm': true
                 },
                 'genders': {
                     'Male': true,
                     'Female': true,
-                    'Gender Neutral': true
+                    'CoEd': true
                 }
             }
         };
@@ -265,7 +260,7 @@ var Housing = React.createClass({
     updateData: function updateData() {
         document.getElementById('loader').className = 'active';
 
-        $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', (function (r) {
+        jQuery.getJSON(ajaxurl, { action: 'housing_availability' }, (function (r) {
             var now = new Date();
             if (r.hasOwnProperty('areas')) {
                 // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
@@ -293,7 +288,7 @@ var Housing = React.createClass({
         }
     },
     renderAreas: function renderAreas(s, i, a) {
-        return React.createElement(Area, { group: s, units: s.units, key: s.id, filters: this.state.filters, filtersActive: this.state.filtersActive });
+        return React.createElement(Area, { group: s, units: s.units, key: s.areaID, name: s.areaID, filters: this.state.filters, filtersActive: this.state.filtersActive });
     },
     render: function render() {
         var applyDataDisplay = this.state.isDataPending ? '' : 'none',
@@ -342,9 +337,9 @@ var Area = React.createClass({
     },
     render: function render() {
         var g = this.props.group,
-            aptText = this.maybePlural(g.spacesAvailableByType.Apartment, 'apartment'),
+            aptText = this.maybePlural(g.spacesAvailableByType.Apt, 'Apt'),
             suiteText = this.maybePlural(g.spacesAvailableByType.Suite, 'suite'),
-            dormText = this.maybePlural(g.spacesAvailableByType.Dormitory, 'dorm'),
+            dormText = this.maybePlural(g.spacesAvailableByType.Dorm, 'dorm'),
             unitsText = this.maybePlural(this.props.group.availableSpaceCount, 'unit'),
             arrow_icon = 'glyphicon ' + (this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'),
             roomSummaryDisplay = this.props.filtersActive ? 'none' : 'initial',
@@ -358,7 +353,7 @@ var Area = React.createClass({
                 { className: 'bu_collapsible', onClick: this.toggleShow, style: { cursor: 'pointer' } },
                 React.createElement('span', { className: arrow_icon, 'aria-hidden': 'true' }),
                 '  ',
-                this.props.group.name,
+                this.props.name,
                 '  ',
                 React.createElement(
                     'span',
@@ -386,11 +381,12 @@ var AreaTable = React.createClass({
     displayName: 'AreaTable',
 
     showPopover: function showPopover(e) {
-        console.log(e);
+        // console.log(e);
         // jQuery(e).popover('show');
     },
     isRoomVisible: function isRoomVisible(unit, room) {
-        // console.log(this.props.filters);
+        // console.log( 'FILTERS: ' + JSON.stringify(this.props.filters));
+        // console.log( 'ROOM: ' + JSON.stringify(room));
         return this.props.filters.roomTypes[room.summaryRoomType] && this.props.filters.roomMaxOcc[room.roomTotalSpaces] && this.props.filters.specialty[unit.specialty] && this.props.filters.genders[unit.gender];
     },
     render: function render() {
@@ -398,15 +394,18 @@ var AreaTable = React.createClass({
             locationsPopover;
 
         if (!this.props.expanded) {
-            console.log(locationsPopover);
+            // console.log(locationsPopover);
             return React.createElement('div', null);
         }
 
         this.props.units.map(function (u, i) {
             var maybeTakenClass = u.unitAvailableSpaces > 0 ? '' : ' booked ';
             u.rooms.map(function (r, j) {
+                // console.log( 'ROOM: ' + JSON.stringify(r));
                 if (this.isRoomVisible(u, r)) {
-                    rooms.push(React.createElement(Room, { data: r, unit: u, key: r.id, recentlyTakenClass: maybeTakenClass }));
+                    rooms.push(React.createElement(Room, { data: r, unit: u, key: r.roomID, recentlyTakenClass: maybeTakenClass }));
+                } else {
+                    // console.log(false);
                 }
             }, this);
         }, this);
@@ -523,7 +522,7 @@ var Room = React.createClass({
             React.createElement(
                 'td',
                 null,
-                this.props.unit.id
+                this.props.unit.unitID
             ),
             React.createElement(
                 'td',
