@@ -30,6 +30,7 @@ foreach ( range('A', 'F') as $l ) {
     $area = array(
         'id'                    => $areaID,
         'name'                  => 'Area ' . $l,
+        'buildings'             => array(),
         'roomCount'             => 0,
         'availableSpaceCount'   => 0,
         'totalSpaceCount'       => 0,
@@ -47,10 +48,11 @@ foreach ( range('A', 'F') as $l ) {
         $streetNum              = rand(1,1000);
         $roomType               = $roomTypes[ rand(0,2) ];
         $unitID                 = sprintf( "%d %s%s%s%s-%d", $streetNum, chr(65+rand(0,20)),chr(65+rand(0,20)),chr(65+rand(0,20)),chr(65+rand(0,20)),str_pad( rand(1,1000), 4, "0", STR_PAD_LEFT) );
+        $location               = sprintf( "%d %s %s street", $streetNum, $words[ $rw[0] ], $words[ $rw[1] ] );
 
         $unit = array(
             'id'                    => $unitID,
-            'location'              => sprintf( "%d %s %s street", $streetNum, $words[ $rw[0] ], $words[ $rw[1] ] ),
+            'location'              => $location,
             'floor'                 => rand(1,5),
             'unitTotalSpaces'       => 0,
             'unitAvailableSpaces'   => 0,
@@ -91,6 +93,7 @@ foreach ( range('A', 'F') as $l ) {
         $area['roomCount']++;
         $area['availableSpaceCount'] += $unit['unitAvailableSpaces'];
         $area['totalSpaceCount'] += $unit['unitTotalSpaces'];
+        $area['buildings'][] = $location;
         
         foreach ($roomTypes as $rt) {
             $area['spacesAvailableByType'][$rt] += $unit['spacesAvailableByType'][$rt];

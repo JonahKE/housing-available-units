@@ -1,3 +1,5 @@
+jQuery.ajaxSetup({ cache: false });
+
 var updateInterval = 30;
 var DisplayMixin = {
     maybePlural: function( qty, singularLabel, pluralLabel ){
@@ -7,6 +9,7 @@ var DisplayMixin = {
         return qty + ' ' + ( qty == 1 ? singularLabel : pluralLabel );
     }
 };
+
 var Ticker = React.createClass({
   getInitialState: function() {
     return {
@@ -67,7 +70,7 @@ var Ticker = React.createClass({
     );
   }
 });
-var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
+//var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
  
 var FilterBar = React.createClass({ 
     render: function(){
@@ -141,38 +144,19 @@ var Housing = React.createClass({
     },
     componentDidMount:function(){
         document.getElementById('loader').className = '';
-        this.doUpdateData();
+        setTimeout( this.updateData, updateInterval * 1000);
     },
-    doUpdateData: function(){
-        var that = this;
-        if( theTicker.isMounted() ){
-            theTicker.startTicking();
-        }
-        setTimeout(function(){
-            that.updateData( updateInterval );
-        }, updateInterval * 1000);
-    },
-    updateData: function(t){
-        var that = this;
+    updateData: function(){
         document.getElementById('loader').className = 'active';
-        if( theTicker.isMounted() ){
-            theTicker.stopTicking();
-        }
+
         $.getJSON('http://awbauer.cms-devl.bu.edu/non-wp/housing/units.json.php', function(r){
             var now = new Date();
             if ( r.hasOwnProperty( 'areas' ) ){
-                // that.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
-                that.setState({ areas: r.areas, lastDownloadTime: new Date() });
+                // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
+                this.setState({ areas: r.areas, lastDownloadTime: new Date() });
             }
             document.getElementById( 'loader' ).className = '';
-            if ( t > 0 ){
-                if ( theTicker.isMounted() ){
-                    theTicker.startTicking( t );
-                }
-                setTimeout( function(){
-                    that.updateData( t );
-                }, ( t * 1000 ) );
-            }
+            setTimeout( this.updateData, updateInterval * 1000 );
         }.bind(this));
     },
     updateFilters: function( e ) {
@@ -198,11 +182,11 @@ var Housing = React.createClass({
             timestampISO = this.state.lastDownloadTime.toISOString(),
             friendlyTimestamp = moment( timestampISO ).fromNow(), 
             areasText = this.maybePlural( this.state.areas.length, 'area' ), 
-            bedsText = this.maybePlural( this.state.roomCount, 'bed' );
+            unitsText = this.maybePlural( this.state.roomCount, 'unit' );
         return (
             <div>
                 <span className="last-updated">Last updated <span className="time" data-timestamp={timestampISO}>{friendlyTimestamp}</span></span>
-                <div className='loaded-units-count'>Loaded {areasText} containing {bedsText}</div>
+                <div className='loaded-units-count'>Loaded {areasText} containing {unitsText}</div>
                 <FilterBar filters={this.state.filters} updateFilters={this.updateFilters} />
                 { this.state.areas.map( this.renderAreas, this ) }
             </div>
@@ -225,7 +209,7 @@ var Area = React.createClass({
             aptText     = this.maybePlural( g.spacesAvailableByType.Apartment, 'apartment' ),
             suiteText   = this.maybePlural( g.spacesAvailableByType.Suite, 'suite' ),
             dormText    = this.maybePlural( g.spacesAvailableByType.Dormitory, 'dorm' ),
-            bedsText    = this.maybePlural( this.props.group.availableSpaceCount, 'bed' ),
+            unitsText    = this.maybePlural( this.props.group.availableSpaceCount, 'unit' ),
             arrow_icon  = 'glyphicon ' + ( this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right' ),
             roomSummaryDisplay = ( this.props.filtersActive ) ? 'none' : 'initial',
             filtersActiveDisplay = ( this.props.filtersActive ) ? 'initial' : 'none';
@@ -235,7 +219,7 @@ var Area = React.createClass({
                 <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
                     <span className={arrow_icon} aria-hidden="true"></span> &nbsp;
                     {this.props.group.name} &nbsp;
-                    <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>{bedsText} available: &nbsp;
+                    <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>{unitsText} available: &nbsp;
                         {aptText} | &nbsp;
                         {suiteText} | &nbsp;
                         {dormText}
@@ -249,6 +233,10 @@ var Area = React.createClass({
 });
 
 var AreaTable = React.createClass({
+    showPopover: function(e){
+        console.log(e);
+        // jQuery(e).popover('show');
+    },
     isRoomVisible: function(unit,room){
         // console.log(this.props.filters);
         return ( 
@@ -259,9 +247,11 @@ var AreaTable = React.createClass({
             );
     },
     render: function(){
-        var rooms = [];
+        var rooms = [],
+            locationsPopover;
 
         if( !this.props.expanded ){
+            console.log(locationsPopover);
             return <div />;
         }
         
@@ -278,7 +268,12 @@ var AreaTable = React.createClass({
             <div className="bu_collapsible_section">
                 <table style={{listStyleType:'none'}}>
                     <thead>
-                        <th>Location</th>
+                        <th><a href="#" onClick={this.showPopover} data-container="body" ref={function(e) {
+                              if (e != null) {
+                                jQuery(e).popover();
+                              }
+                            }}>
+                            <span className="glyphicon glyphicon-filter" aria-label="Click to Filter Locations"></span></a> Location</th>
                         <th>Floor</th>
                         <th>Unit #</th>
                         <th>Room Type</th>
@@ -297,12 +292,32 @@ var AreaTable = React.createClass({
 });
  
 var Room = React.createClass({
+    getInitialState: function() {
+        return { 
+            hidden          : ( ! this.props.unit.unitAvailableSpaces ),
+            recentlyTaken   : false
+        };
+    },
     shouldComponentUpdate: function( nextProps, nextState ){
         return ( nextProps.unit.unitAvailableSpaces !== this.props.unit.unitAvailableSpaces );
     },
+    componentWillReceiveProps: function(nextProps){
+        if( this.props.unit.unitAvailableSpaces > 0 && !nextProps.unit.unitAvailableSpaces ){
+            this.setState({
+                hidden : false,
+                recentlyTaken: true
+            });
+        }
+    },
     render: function(){
+        var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '';
+        
+        if( this.state.hidden ){
+            return <tr />;
+        }
+
         return (
-            <tr className={this.props.recentlyTakenClass}>
+            <tr className={recentlyTakenClass}>
                 <td>{this.props.unit.location}</td>
                 <td>{this.props.unit.floor}</td>
                 <td>{this.props.unit.id}</td>
