@@ -1,4 +1,6 @@
-var updateInterval = 10;
+jQuery.ajaxSetup({ cache: false });
+
+var updateInterval = 30;
 var DisplayMixin = {
     maybePlural: function( qty, singularLabel, pluralLabel ){
         if( 'undefined' === typeof pluralLabel ){
@@ -7,6 +9,7 @@ var DisplayMixin = {
         return qty + ' ' + ( qty == 1 ? singularLabel : pluralLabel );
     }
 };
+
 var Ticker = React.createClass({
   getInitialState: function() {
     return {
@@ -230,6 +233,10 @@ var Area = React.createClass({
 });
 
 var AreaTable = React.createClass({
+    showPopover: function(e){
+        console.log(e);
+        // jQuery(e).popover('show');
+    },
     isRoomVisible: function(unit,room){
         // console.log(this.props.filters);
         return ( 
@@ -240,9 +247,11 @@ var AreaTable = React.createClass({
             );
     },
     render: function(){
-        var rooms = [];
+        var rooms = [],
+            locationsPopover;
 
         if( !this.props.expanded ){
+            console.log(locationsPopover);
             return <div />;
         }
         
@@ -259,7 +268,12 @@ var AreaTable = React.createClass({
             <div className="bu_collapsible_section">
                 <table style={{listStyleType:'none'}}>
                     <thead>
-                        <th>Location</th>
+                        <th><a href="#" onClick={this.showPopover} data-container="body" ref={function(e) {
+                              if (e != null) {
+                                jQuery(e).popover();
+                              }
+                            }}>
+                            <span className="glyphicon glyphicon-filter" aria-label="Click to Filter Locations"></span></a> Location</th>
                         <th>Floor</th>
                         <th>Unit #</th>
                         <th>Room Type</th>
@@ -299,7 +313,7 @@ var Room = React.createClass({
         var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '';
         
         if( this.state.hidden ){
-            return false;
+            return <tr />;
         }
 
         return (

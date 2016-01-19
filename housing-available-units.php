@@ -8,6 +8,7 @@ Version: 0.1
 Text Domain: housing-available-units
 */
 
+define( 'BU_HAU_VERSION', '0.1' );
 define( 'BU_HAU_MEDIA_DIR', '/housing-available-units/' );
 define( 'BU_HAU_MEDIA_UNITS_FILE', BU_HAU_MEDIA_DIR . 'units.json' );
 define( 'BU_HAU_SAMPLE_DIR', __DIR__ . '/sample/' );
@@ -16,6 +17,7 @@ define( 'BU_HAU_SAMPLE_BOOKINGS_FILE', 'Bookings.csv' );
 define( 'BU_HAU_SAMPLE_HOUSING_CODES_FILE', 'Specialty Housing Codes.csv' );
 
 add_action( 'init', array( 'Housing_Available_Units', 'init' ), 99);
+add_shortcode( 'housing_availability', array( 'Housing_Available_Units', 'do_shortcode' ) );
 
 class Housing_Available_Units {
 
@@ -57,6 +59,20 @@ class Housing_Available_Units {
 			echo self::sync();
 			die;
 		}
+	}
+
+	/**
+	 * Setup sync schedules
+	 * @return string containing React app
+	 */
+	static function do_shortcode( $atts, $content = '' ) {
+		wp_register_script( 'bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array(), '3.3.6' );
+		wp_register_script( 'momentjs', 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js', array(), '2.10.3' );
+		wp_enqueue_script( 'hau-react-app',  plugins_url( 'js/app.js', __FILE__ ), array( 'jquery', 'bootstrap', 'momentjs' ), BU_HAU_VERSION, true );
+		wp_enqueue_style( 'bootstrap-css', $src, $deps, $ver, $media );
+		wp_enqueue_style( 'bootstrap-theme-css', $src, $deps, $ver, $media );
+		wp_enqueue_style( 'hau-css', plugins_url( 'css/hau.css', __FILE__ ) , array(), BU_HAU_VERSION );
+		return 'things';
 	}
 
 	/**
