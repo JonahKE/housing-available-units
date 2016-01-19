@@ -78,7 +78,7 @@ var Ticker = React.createClass({
         );
     }
 });
-//var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
+//var theTicker = ReactDOM.render( <Ticker />, document.getElementById('ticker') );
 
 var FilterBar = React.createClass({
     displayName: 'FilterBar',
@@ -260,7 +260,7 @@ var Housing = React.createClass({
     updateData: function updateData() {
         document.getElementById('loader').className = 'active';
 
-        jQuery.getJSON(ajaxurl, { action: 'housing_availability' }, (function (r) {
+        jQuery.getJSON(hau_opts.ajaxurl, { action: 'housing_availability' }, (function (r) {
             var now = new Date();
             if (r.hasOwnProperty('areas')) {
                 // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
@@ -293,9 +293,7 @@ var Housing = React.createClass({
     render: function render() {
         var applyDataDisplay = this.state.isDataPending ? '' : 'none',
             timestampISO = this.state.lastDownloadTime.toISOString(),
-            friendlyTimestamp = moment(timestampISO).fromNow(),
-            areasText = this.maybePlural(this.state.areas.length, 'area'),
-            unitsText = this.maybePlural(this.state.roomCount, 'unit');
+            friendlyTimestamp = moment(timestampISO).fromNow();
         return React.createElement(
             'div',
             null,
@@ -308,14 +306,6 @@ var Housing = React.createClass({
                     { className: 'time', 'data-timestamp': timestampISO },
                     friendlyTimestamp
                 )
-            ),
-            React.createElement(
-                'div',
-                { className: 'loaded-units-count' },
-                'Loaded ',
-                areasText,
-                ' containing ',
-                unitsText
             ),
             React.createElement(FilterBar, { filters: this.state.filters, updateFilters: this.updateFilters }),
             this.state.areas.map(this.renderAreas, this)
@@ -372,7 +362,7 @@ var Area = React.createClass({
                     'Filter(s) active'
                 )
             ),
-            React.createElement(AreaTable, { units: this.props.units, expanded: this.state.expanded, filters: this.props.filters })
+            React.createElement(AreaTable, { units: this.props.units, buildings: g.buildings, expanded: this.state.expanded, filters: this.props.filters })
         );
     }
 });
@@ -381,31 +371,58 @@ var AreaTable = React.createClass({
     displayName: 'AreaTable',
 
     showPopover: function showPopover(e) {
-        // console.log(e);
-        // jQuery(e).popover('show');
+        e.preventDefault();
+        jQuery(e.target).popover('show');
+    },
+    getPopoverContent: function getPopoverContent(ele) {
+        var locationsCheckboxes = [],
+            locationsFilterPopover,
+            listInner = '';
+
+        this.props.buildings.map(function (b, i) {
+            listInner += '<li>' + b + '</li>';
+        });
+
+        return '<ul>' + listInner + '</ul>';
     },
     isRoomVisible: function isRoomVisible(unit, room) {
         // console.log( 'FILTERS: ' + JSON.stringify(this.props.filters));
         // console.log( 'ROOM: ' + JSON.stringify(room));
         return this.props.filters.roomTypes[room.summaryRoomType] && this.props.filters.roomMaxOcc[room.roomTotalSpaces] && this.props.filters.specialty[unit.specialty] && this.props.filters.genders[unit.gender];
     },
+    componentWillReceiveProps: function componentWillReceiveProps() {
+        // update popover content (if necessary)
+    },
+    tableLoaded: function tableLoaded(table) {
+        // this.areaTable = this;
+        var thisTable = this;
+        jQuery(table).stickyTableHeaders({
+            fixedOffset: hau_opts.is_user_logged_in ? 20 : 0
+        }).on('enabledStickiness.stickyTableHeaders', function () {
+            jQuery(this).addClass('headers-sticky');
+        }).on('disabledStickiness.stickyTableHeaders', function () {
+            jQuery(this).removeClass('headers-sticky');
+        }).find('[data-toggle="popover"]').each(function (i, e) {
+            jQuery(e).popover({
+                container: 'body',
+                placement: 'bottom',
+                html: true,
+                content: thisTable.getPopoverContent
+            });
+        });
+    },
     render: function render() {
-        var rooms = [],
-            locationsPopover;
+        var rooms = [];
 
         if (!this.props.expanded) {
-            // console.log(locationsPopover);
             return React.createElement('div', null);
         }
 
         this.props.units.map(function (u, i) {
             var maybeTakenClass = u.unitAvailableSpaces > 0 ? '' : ' booked ';
             u.rooms.map(function (r, j) {
-                // console.log( 'ROOM: ' + JSON.stringify(r));
                 if (this.isRoomVisible(u, r)) {
                     rooms.push(React.createElement(Room, { data: r, unit: u, key: r.roomID, recentlyTakenClass: maybeTakenClass }));
-                } else {
-                    // console.log(false);
                 }
             }, this);
         }, this);
@@ -415,58 +432,60 @@ var AreaTable = React.createClass({
             { className: 'bu_collapsible_section' },
             React.createElement(
                 'table',
-                { style: { listStyleType: 'none' } },
+                { style: { listStyleType: 'none' }, ref: this.tableLoaded },
                 React.createElement(
                     'thead',
                     null,
                     React.createElement(
-                        'th',
+                        'tr',
                         null,
                         React.createElement(
-                            'a',
-                            { href: '#', onClick: this.showPopover, 'data-container': 'body', ref: function (e) {
-                                    if (e != null) {
-                                        jQuery(e).popover();
-                                    }
-                                } },
-                            React.createElement('span', { className: 'glyphicon glyphicon-filter', 'aria-label': 'Click to Filter Locations' })
+                            'th',
+                            null,
+                            React.createElement(
+                                'a',
+                                { href: '#', onClick: this.showPopover, 'data-toggle': 'popover', title: 'Filter Locations' },
+                                React.createElement('span', { className: 'glyphicon glyphicon-filter', 'aria-label': 'Click to Filter Locations' })
+                            ),
+                            ' Location'
                         ),
-                        ' Location'
-                    ),
-                    React.createElement(
-                        'th',
-                        null,
-                        'Floor'
-                    ),
-                    React.createElement(
-                        'th',
-                        null,
-                        'Unit #'
-                    ),
-                    React.createElement(
-                        'th',
-                        null,
-                        'Room Type'
-                    ),
-                    React.createElement(
-                        'th',
-                        null,
-                        'Room #'
-                    ),
-                    React.createElement(
-                        'th',
-                        null,
-                        '# Spaces Available'
-                    ),
-                    React.createElement(
-                        'th',
-                        null,
-                        'Gender'
-                    ),
-                    React.createElement(
-                        'th',
-                        null,
-                        'Specialty'
+                        React.createElement(
+                            'th',
+                            null,
+                            'Floor'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Unit #'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Room Type'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Room #'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Spaces',
+                            React.createElement('br', null),
+                            'Available'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Gender'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Specialty'
+                        )
                     )
                 ),
                 React.createElement(
@@ -554,6 +573,6 @@ var Room = React.createClass({
         );
     }
 });
-React.render(React.createElement(Housing, null), document.getElementById('housing_table'));
+ReactDOM.render(React.createElement(Housing, null), document.getElementById('housing_table'));
 
 },{}]},{},[1]);

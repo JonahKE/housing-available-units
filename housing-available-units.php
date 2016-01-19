@@ -21,8 +21,15 @@ define( 'BU_HAU_SAMPLE_HOUSING_CODES_FILE', 'Specialty Housing Codes.csv' );
 add_action( 'init', array( 'Housing_Available_Units', 'init' ), 99);
 add_action( 'wp_ajax_housing_availability', array( 'Housing_Available_Units', 'handle_ajax' ));
 add_action( 'wp_ajax_nopriv_housing_availability', array( 'Housing_Available_Units', 'handle_ajax' ));
-
 add_shortcode( 'housing_availability', array( 'Housing_Available_Units', 'do_shortcode' ) );
+
+function setup_jsx_tags( $tag, $handle, $src ) {
+	if ( 'hau-react-app' == $handle && defined( 'BU_HAU_DEBUG' ) && BU_HAU_DEBUG ) {
+		$tag = str_replace( "<script type='text/javascript'", "<script type='text/babel'", $tag );
+	}
+	return $tag;
+}
+add_filter( 'script_loader_tag', 'setup_jsx_tags', 10, 3 );
 
 class Housing_Available_Units {
 
@@ -71,16 +78,31 @@ class Housing_Available_Units {
 	 * @return string containing React app
 	 */
 	static function do_shortcode( $atts, $content = '' ) {
+		
 		wp_register_script( 'bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array(), '3.3.6' );
 		wp_register_script( 'momentjs', 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js', array(), '2.10.3' );
-		wp_register_script( 'react', 'https://fb.me/react-0.14.6.min.js', array(), '0.14.6' );
-		wp_register_script( 'react-dom', 'https://fb.me/react-dom-0.14.6.min.js', array('react'), '0.14.6' );
-		wp_register_script( 'hau-react-app',  plugins_url( 'js/app.js', __FILE__ ), array( 'jquery', 'bootstrap', 'react', 'momentjs' ), BU_HAU_VERSION, true );
-		wp_localize_script( 'hau-react-app', 'hau_opts', array( '_bootstrap' => json_decode( self::sync() ) ) );
+		wp_register_script( 'sticky-table-headers',  plugins_url( 'js/vendor/jquery.stickytableheaders.min.js', __FILE__ ), array( 'jquery' ), '0.1.19' );
+
+		if( self::$debug ){
+			wp_register_script( 'react', 'https://fb.me/react-with-addons-0.14.6.js', array(), '0.14.6' );
+			wp_register_script( 'react-dom', 'https://fb.me/react-dom-0.14.6.js', array('react','babel'), '0.14.6' );
+			wp_enqueue_script( 'babel', 'https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.js', array(), null );
+			wp_register_script( 'hau-react-app',  plugins_url( 'js/app.jsx', __FILE__ ), array( 'jquery', 'bootstrap', 'react-dom', 'momentjs', 'sticky-table-headers' ), BU_HAU_VERSION, true );
+		} else {
+			wp_register_script( 'react', 'https://fb.me/react-0.14.6.min.js', array(), '0.14.6' );
+			wp_register_script( 'react-dom', 'https://fb.me/react-dom-0.14.6.min.js', array('react'), '0.14.6' );
+			wp_register_script( 'hau-react-app',  plugins_url( 'js/app.js', __FILE__ ), array( 'jquery', 'bootstrap', 'react-dom', 'momentjs', 'sticky-table-headers' ), BU_HAU_VERSION, true );
+		}
+
+		wp_localize_script( 'hau-react-app', 'hau_opts', array( 
+				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+				'is_user_logged_in' => is_user_logged_in(), 
+				'_bootstrap' => json_decode( self::sync() ),
+			) );
 		wp_enqueue_script( 'hau-react-app' );
-		wp_enqueue_style( 'bootstrap-css', $src, $deps, $ver, $media );
-		wp_enqueue_style( 'bootstrap-theme-css', $src, $deps, $ver, $media );
-		wp_enqueue_style( 'hau-css', plugins_url( 'css/hau.css', __FILE__ ) , array(), BU_HAU_VERSION );
+		wp_register_style( 'bootstrap-css', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css', array(), '3.3.6' );
+		wp_register_style( 'bootstrap-theme-css',  'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css', array('bootstrap-css'), '3.3.6' );
+		wp_enqueue_style( 'hau-css', plugins_url( 'css/hau.css', __FILE__ ) , array('bootstrap-theme-css'), BU_HAU_VERSION );
 		ob_start();
 		require 'template-shortcode.php';
 		return ob_get_clean();

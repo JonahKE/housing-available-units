@@ -70,7 +70,7 @@ var Ticker = React.createClass({
     );
   }
 });
-//var theTicker = React.render( <Ticker />, document.getElementById('ticker') );
+//var theTicker = ReactDOM.render( <Ticker />, document.getElementById('ticker') );
  
 var FilterBar = React.createClass({ 
     render: function(){
@@ -152,7 +152,7 @@ var Housing = React.createClass({
     updateData: function(){
         document.getElementById('loader').className = 'active';
 
-        jQuery.getJSON( ajaxurl, { action : 'housing_availability' }, function(r){
+        jQuery.getJSON( hau_opts.ajaxurl, { action : 'housing_availability' }, function(r){
             var now = new Date();
             if ( r.hasOwnProperty( 'areas' ) ){
                 // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
@@ -183,13 +183,10 @@ var Housing = React.createClass({
     render: function(){
         var applyDataDisplay = this.state.isDataPending ? '' : 'none',
             timestampISO = this.state.lastDownloadTime.toISOString(),
-            friendlyTimestamp = moment( timestampISO ).fromNow(), 
-            areasText = this.maybePlural( this.state.areas.length, 'area' ), 
-            unitsText = this.maybePlural( this.state.roomCount, 'unit' );
+            friendlyTimestamp = moment( timestampISO ).fromNow();
         return (
             <div>
                 <span className="last-updated">Last updated <span className="time" data-timestamp={timestampISO}>{friendlyTimestamp}</span></span>
-                <div className='loaded-units-count'>Loaded {areasText} containing {unitsText}</div>
                 <FilterBar filters={this.state.filters} updateFilters={this.updateFilters} />
                 { this.state.areas.map( this.renderAreas, this ) }
             </div>
@@ -229,7 +226,7 @@ var Area = React.createClass({
                     </span>
                     <span className="filters-active"  style={{ display: filtersActiveDisplay }}>Filter(s) active</span>
                 </h2>
-                <AreaTable units={this.props.units} expanded={this.state.expanded} filters={this.props.filters} />
+                <AreaTable units={this.props.units} buildings={g.buildings} expanded={this.state.expanded} filters={this.props.filters} />
             </div>
         );
     }
@@ -237,8 +234,20 @@ var Area = React.createClass({
 
 var AreaTable = React.createClass({
     showPopover: function(e){
-        // console.log(e);
-        // jQuery(e).popover('show');
+        e.preventDefault();
+        jQuery(e.target).popover('show');
+    },
+    getPopoverContent: function(ele){
+        var locationsCheckboxes = [],
+            locationsFilterPopover,
+            listInner = '';
+
+        this.props.buildings.map( function( b, i ) {            
+            listInner += '<li>' + b + '</li>';
+        });
+
+
+        return '<ul>' + listInner + '</ul>';
     },
     isRoomVisible: function(unit,room){
         // console.log( 'FILTERS: ' + JSON.stringify(this.props.filters));
@@ -250,44 +259,62 @@ var AreaTable = React.createClass({
                 this.props.filters.genders[ unit.gender ]
             );
     },
+    componentWillReceiveProps: function(){
+        // update popover content (if necessary)
+    },
+    tableLoaded: function(table){
+        // this.areaTable = this;
+        var thisTable = this;
+        jQuery(table)
+            .stickyTableHeaders({
+                fixedOffset: ( hau_opts.is_user_logged_in ) ? 20 : 0
+            })
+            .on('enabledStickiness.stickyTableHeaders', function(){
+                jQuery(this).addClass('headers-sticky');
+            })
+            .on('disabledStickiness.stickyTableHeaders', function(){
+                jQuery(this).removeClass('headers-sticky');
+            })
+            .find('[data-toggle="popover"]').each(function(i,e){
+                jQuery(e).popover({
+                    container: 'body',
+                    placement: 'bottom',
+                    html: true,
+                    content: thisTable.getPopoverContent
+                });
+           });                        
+    },
     render: function(){
-        var rooms = [],
-            locationsPopover;
+        var rooms = [];
 
         if( !this.props.expanded ){
-            // console.log(locationsPopover);
             return <div />;
         }
-        
+
         this.props.units.map( function( u, i ) {
             var maybeTakenClass = ( u.unitAvailableSpaces > 0 ) ? '' : ' booked ';
             u.rooms.map( function( r, j ){
-                // console.log( 'ROOM: ' + JSON.stringify(r));
                 if( this.isRoomVisible( u, r ) ){
                     rooms.push( <Room data={r} unit={u} key={r.roomID} recentlyTakenClass={maybeTakenClass} /> );
-                } else{
-                    // console.log(false);
                 }
             }, this);
         }, this);
 
         return (
             <div className="bu_collapsible_section">
-                <table style={{listStyleType:'none'}}>
+                <table style={{listStyleType:'none'}} ref={this.tableLoaded}>
                     <thead>
-                        <th><a href="#" onClick={this.showPopover} data-container="body" ref={function(e) {
-                              if (e != null) {
-                                jQuery(e).popover();
-                              }
-                            }}>
-                            <span className="glyphicon glyphicon-filter" aria-label="Click to Filter Locations"></span></a> Location</th>
-                        <th>Floor</th>
-                        <th>Unit #</th>
-                        <th>Room Type</th>
-                        <th>Room #</th>
-                        <th># Spaces Available</th>
-                        <th>Gender</th>
-                        <th>Specialty</th>
+                        <tr>
+                            <th><a href="#" onClick={this.showPopover} data-toggle="popover" title="Filter Locations">
+                                <span className="glyphicon glyphicon-filter" aria-label="Click to Filter Locations"></span></a> Location</th>
+                            <th>Floor</th>
+                            <th>Unit #</th>
+                            <th>Room Type</th>
+                            <th>Room #</th>
+                            <th>Spaces<br />Available</th>
+                            <th>Gender</th>
+                            <th>Specialty</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {rooms}
@@ -337,4 +364,4 @@ var Room = React.createClass({
         );
     }
 });
-React.render( <Housing />, document.getElementById('housing_table') );
+ReactDOM.render( <Housing />, document.getElementById('housing_table') );
