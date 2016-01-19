@@ -91,6 +91,14 @@ class Housing_Available_Units {
 	 * @return string - full dataset in json form
 	 */
 	static function handle_ajax(){
+		if ( self::$debug ) {
+			echo self::sync();
+			die;
+		} 
+		return;
+	}
+
+	/**
 	 * Setup sync schedules
 	 * @return null
 	 */
