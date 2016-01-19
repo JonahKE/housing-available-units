@@ -16,7 +16,7 @@ define( 'BU_HAU_SAMPLE_SPACE_FILE', 'Space File.csv' );
 define( 'BU_HAU_SAMPLE_BOOKINGS_FILE', 'Bookings.csv' );
 define( 'BU_HAU_SAMPLE_HOUSING_CODES_FILE', 'Specialty Housing Codes.csv' );
 
-define( 'BU_HAU_DEBUG', true );
+// define( 'BU_HAU_DEBUG', true );
 
 add_action( 'init', array( 'Housing_Available_Units', 'init' ), 99);
 add_shortcode( 'housing_availability', array( 'Housing_Available_Units', 'do_shortcode' ) );
