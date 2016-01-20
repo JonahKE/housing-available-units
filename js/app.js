@@ -13,72 +13,19 @@ var DisplayMixin = {
     }
 };
 
-var Ticker = React.createClass({
-    displayName: 'Ticker',
+var FilterCheckbox = React.createClass({
+    displayName: 'FilterCheckbox',
 
-    getInitialState: function getInitialState() {
-        return {
-            secondsLeft: updateInterval
-        };
-    },
-    tick: function tick() {
-        if (!this.isMounted()) {
-            return;
-        }
-        var left = this.state.secondsLeft - 1;
-
-        // this.updateMoment();
-
-        if (left != parseInt(left) || 0 >= left) {
-            this.stopTicking();
-            return;
-        }
-        this.setState({ secondsLeft: left });
-    },
-    updateMoment: function updateMoment() {
-        var timeSince = document.querySelector('.last-updated .time'),
-            newText;
-
-        if (undefined === timeSince.dataset.timestamp) {
-            return;
-        }
-
-        newText = moment(timeSince.dataset.timestamp).fromNow();
-
-        if (newText == timeSince.innerHTML) {
-            return;
-        }
-
-        timeSince.innerHTML = newText;
-    },
-    startTicking: function startTicking(t) {
-        if (!this.isMounted()) {
-            return;
-        }
-
-        if (t !== updateInterval) {
-            this.setState({ secondsLeft: t });
-        }
-
-        this.interval = setInterval(this.tick, 1000);
-    },
-    stopTicking: function stopTicking() {
-        clearInterval(this.interval);
-        if (!this.isMounted()) {
-            return;
-        }
-        this.setState({ secondsLeft: 'NOW' });
-    },
     render: function render() {
         return React.createElement(
-            'div',
+            'label',
             null,
-            'Updates in: ',
-            this.state.secondsLeft
+            React.createElement('input', { type: 'checkbox', checked: this.props.isChecked, name: this.props.category, value: this.props.name, onChange: this.props.updateFilters }),
+            ' ',
+            this.props.name
         );
     }
 });
-//var theTicker = ReactDOM.render( <Ticker />, document.getElementById('ticker') );
 
 var FilterBar = React.createClass({
     displayName: 'FilterBar',
@@ -88,125 +35,169 @@ var FilterBar = React.createClass({
 
         return React.createElement(
             'div',
-            { className: 'filter-container' },
+            { className: 'filter-container bu_collapsible_container' },
             React.createElement(
                 'h2',
-                null,
+                { className: 'bu_collapsible' },
                 'Filter by...'
             ),
             React.createElement(
                 'div',
-                { className: 'filter-group' },
+                { className: 'bu_collapsible_section' },
                 React.createElement(
-                    'h3',
-                    null,
-                    'Gender'
+                    'div',
+                    { className: 'filter-group' },
+                    React.createElement(
+                        'h3',
+                        null,
+                        'Gender'
+                    ),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.genders.Female, name: 'genders', value: 'Female', onChange: this.props.updateFilters }),
+                        ' Female'
+                    ),
+                    ' ',
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.genders.Male, name: 'genders', value: 'Male', onChange: this.props.updateFilters }),
+                        ' Male'
+                    ),
+                    ' ',
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.genders['CoEd'], name: 'genders', value: 'CoEd', onChange: this.props.updateFilters }),
+                        ' Gender Neutral'
+                    )
                 ),
                 React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.genders.Female, name: 'genders', value: 'Female', onChange: this.props.updateFilters }),
-                    ' Female'
+                    'div',
+                    { className: 'filter-group' },
+                    React.createElement(
+                        'h3',
+                        null,
+                        'Room Size'
+                    ),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['1'], name: 'roomMaxOcc', value: '1', onChange: this.props.updateFilters }),
+                        ' Single'
+                    ),
+                    ' ',
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['2'], name: 'roomMaxOcc', value: '2', onChange: this.props.updateFilters }),
+                        ' Double'
+                    ),
+                    ' ',
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['3'], name: 'roomMaxOcc', value: '3', onChange: this.props.updateFilters }),
+                        ' Triple'
+                    ),
+                    ' ',
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['4'], name: 'roomMaxOcc', value: '4', onChange: this.props.updateFilters }),
+                        ' Quad'
+                    )
                 ),
-                ' ',
-                React.createElement('br', null),
                 React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.genders.Male, name: 'genders', value: 'Male', onChange: this.props.updateFilters }),
-                    ' Male'
+                    'div',
+                    { className: 'filter-group' },
+                    React.createElement(
+                        'h3',
+                        null,
+                        'Unit Type'
+                    ),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Apt'], name: 'roomTypes', value: 'Apt', onChange: this.props.updateFilters }),
+                        ' Apt'
+                    ),
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Suite'], name: 'roomTypes', value: 'Suite', onChange: this.props.updateFilters }),
+                        ' Suite'
+                    ),
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Studio'], name: 'roomTypes', value: 'Studio', onChange: this.props.updateFilters }),
+                        ' Studio'
+                    ),
+                    React.createElement('br', null),
+                    React.createElement(
+                        'label',
+                        null,
+                        React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Dorm'], name: 'roomTypes', value: 'Dorm', onChange: this.props.updateFilters }),
+                        ' Dorm'
+                    )
                 ),
-                ' ',
-                React.createElement('br', null),
                 React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.genders['CoEd'], name: 'genders', value: 'CoEd', onChange: this.props.updateFilters }),
-                    ' Gender Neutral'
+                    'div',
+                    { className: 'filter-group' },
+                    React.createElement(
+                        'h3',
+                        null,
+                        'Specialty Housing'
+                    )
                 )
-            ),
+            )
+        );
+    }
+});
+
+var BuildingsLine = React.createClass({
+    displayName: 'BuildingsLine',
+
+    render: function render() {
+        return React.createElement(
+            'div',
+            null,
             React.createElement(
-                'div',
-                { className: 'filter-group' },
-                React.createElement(
-                    'h3',
-                    null,
-                    'Room Size'
-                ),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['1'], name: 'roomMaxOcc', value: '1', onChange: this.props.updateFilters }),
-                    ' Single'
-                ),
+                'label',
+                null,
+                React.createElement('input', { type: 'checkbox', name: this.props.building, checked: this.props.checked, onChange: this.props.updateFilter }),
                 ' ',
-                React.createElement('br', null),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['2'], name: 'roomMaxOcc', value: '2', onChange: this.props.updateFilters }),
-                    ' Double'
-                ),
-                ' ',
-                React.createElement('br', null),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['3'], name: 'roomMaxOcc', value: '3', onChange: this.props.updateFilters }),
-                    ' Triple'
-                ),
-                ' ',
-                React.createElement('br', null),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomMaxOcc['4'], name: 'roomMaxOcc', value: '4', onChange: this.props.updateFilters }),
-                    ' Quad'
-                )
+                this.props.building
             ),
+            React.createElement('br', null)
+        );
+    }
+});
+
+var CurrentAsOf = React.createClass({
+    displayName: 'CurrentAsOf',
+
+    render: function render() {
+        return React.createElement(
+            'div',
+            null,
             React.createElement(
-                'div',
-                { className: 'filter-group' },
+                'span',
+                { className: 'last-updated' },
+                'Last updated ',
                 React.createElement(
-                    'h3',
-                    null,
-                    'Unit Type'
-                ),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Apt'], name: 'roomTypes', value: 'Apt', onChange: this.props.updateFilters }),
-                    ' Apt'
-                ),
-                React.createElement('br', null),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Suite'], name: 'roomTypes', value: 'Suite', onChange: this.props.updateFilters }),
-                    ' Suite'
-                ),
-                React.createElement('br', null),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Studio'], name: 'roomTypes', value: 'Studio', onChange: this.props.updateFilters }),
-                    ' Studio'
-                ),
-                React.createElement('br', null),
-                React.createElement(
-                    'label',
-                    null,
-                    React.createElement('input', { type: 'checkbox', checked: f.roomTypes['Dorm'], name: 'roomTypes', value: 'Dorm', onChange: this.props.updateFilters }),
-                    ' Dorm'
-                )
-            ),
-            React.createElement(
-                'div',
-                { className: 'filter-group' },
-                React.createElement(
-                    'h3',
-                    null,
-                    'Specialty Housing'
+                    'span',
+                    { className: 'time', 'data-timestamp': this.props.lastUpdated },
+                    this.props.lastUpdated
                 )
             )
         );
@@ -225,7 +216,7 @@ var Housing = React.createClass({
             roomCount: hau_opts._bootstrap.totalRoomCount,
             isDataPending: false,
             dataPending: null,
-            lastDownloadTime: new Date(),
+            dataCreateTimestamp: hau_opts._bootstrap.createTime,
             filtersActive: false,
             filters: {
                 'roomMaxOcc': {
@@ -291,22 +282,10 @@ var Housing = React.createClass({
         return React.createElement(Area, { group: s, units: s.units, key: s.areaID, name: s.areaID, filters: this.state.filters, filtersActive: this.state.filtersActive });
     },
     render: function render() {
-        var applyDataDisplay = this.state.isDataPending ? '' : 'none',
-            timestampISO = this.state.lastDownloadTime.toISOString(),
-            friendlyTimestamp = moment(timestampISO).fromNow();
         return React.createElement(
             'div',
             null,
-            React.createElement(
-                'span',
-                { className: 'last-updated' },
-                'Last updated ',
-                React.createElement(
-                    'span',
-                    { className: 'time', 'data-timestamp': timestampISO },
-                    friendlyTimestamp
-                )
-            ),
+            React.createElement(CurrentAsOf, { lastUpdated: this.state.dataCreateTimestamp }),
             React.createElement(FilterBar, { filters: this.state.filters, updateFilters: this.updateFilters }),
             this.state.areas.map(this.renderAreas, this)
         );
@@ -318,14 +297,22 @@ var Area = React.createClass({
 
     mixins: [DisplayMixin],
     getInitialState: function getInitialState() {
+        var buildingsList = new Object();
+
+        this.props.group.buildings.map(function (b) {
+            buildingsList[b] = true;
+        }, this);
+
         return {
-            expanded: false
+            expanded: false,
+            buildingsFilter: buildingsList
         };
     },
     toggleShow: function toggleShow() {
         this.setState({ expanded: !this.state.expanded });
     },
     render: function render() {
+        // console.log(this.state.buildingsFilter);
         var g = this.props.group,
             aptText = this.maybePlural(g.spacesAvailableByType.Apt, 'Apt'),
             suiteText = this.maybePlural(g.spacesAvailableByType.Suite, 'suite'),
@@ -370,28 +357,29 @@ var Area = React.createClass({
 var AreaTable = React.createClass({
     displayName: 'AreaTable',
 
+    getInitialState: function getInitialState() {
+        var buildingsList = new Object();
+
+        this.props.buildings.map(function (b) {
+            buildingsList[b] = true;
+        }, this);
+
+        return {
+            buildingsFilter: buildingsList
+        };
+    },
     showPopover: function showPopover(e) {
         e.preventDefault();
         jQuery(e.target).popover('show');
     },
-    getPopoverContent: function getPopoverContent(ele) {
-        var locationsCheckboxes = [],
-            locationsFilterPopover,
-            listInner = '';
-
-        this.props.buildings.map(function (b, i) {
-            listInner += '<li>' + b + '</li>';
+    filterBuildings: function filterBuildings(e) {
+        this.setState(function (previousState) {
+            previousState.buildingsFilter[e.target.name] = e.target.checked;
+            // console.log(previousState);
         });
-
-        return '<ul>' + listInner + '</ul>';
     },
-    isRoomVisible: function isRoomVisible(unit, room) {
-        // console.log( 'FILTERS: ' + JSON.stringify(this.props.filters));
-        // console.log( 'ROOM: ' + JSON.stringify(room));
-        return this.props.filters.roomTypes[room.summaryRoomType] && this.props.filters.roomMaxOcc[room.roomTotalSpaces] && this.props.filters.specialty[unit.specialty] && this.props.filters.genders[unit.gender];
-    },
-    componentWillReceiveProps: function componentWillReceiveProps() {
-        // update popover content (if necessary)
+    renderBuildingsCheckboxes: function renderBuildingsCheckboxes(b, i, a) {
+        return React.createElement(BuildingsLine, { building: b, key: i, updateFilter: this.filterBuildings, checked: this.state.buildingsFilter[b] });
     },
     tableLoaded: function tableLoaded(table) {
         // this.areaTable = this;
@@ -402,34 +390,38 @@ var AreaTable = React.createClass({
             jQuery(this).addClass('headers-sticky');
         }).on('disabledStickiness.stickyTableHeaders', function () {
             jQuery(this).removeClass('headers-sticky');
-        }).find('[data-toggle="popover"]').each(function (i, e) {
-            jQuery(e).popover({
-                container: 'body',
-                placement: 'bottom',
-                html: true,
-                content: thisTable.getPopoverContent
-            });
         });
     },
     render: function render() {
-        var rooms = [];
+        var roomList = [];
 
         if (!this.props.expanded) {
             return React.createElement('div', null);
         }
 
         this.props.units.map(function (u, i) {
-            var maybeTakenClass = u.unitAvailableSpaces > 0 ? '' : ' booked ';
             u.rooms.map(function (r, j) {
-                if (this.isRoomVisible(u, r)) {
-                    rooms.push(React.createElement(Room, { data: r, unit: u, key: r.roomID, recentlyTakenClass: maybeTakenClass }));
-                }
+                roomList.push(React.createElement(Room, { data: r, unit: u, key: r.roomID, activeBuildings: this.state.buildingsFilter, filters: this.props.filters }));
             }, this);
         }, this);
 
         return React.createElement(
             'div',
             { className: 'bu_collapsible_section' },
+            React.createElement(
+                'div',
+                { className: 'buildings-list' },
+                React.createElement(
+                    'h3',
+                    null,
+                    'Buildings'
+                ),
+                React.createElement(
+                    'ul',
+                    null,
+                    this.props.buildings.map(this.renderBuildingsCheckboxes, this)
+                )
+            ),
             React.createElement(
                 'table',
                 { style: { listStyleType: 'none' }, ref: this.tableLoaded },
@@ -491,7 +483,7 @@ var AreaTable = React.createClass({
                 React.createElement(
                     'tbody',
                     null,
-                    rooms
+                    roomList
                 )
             )
         );
@@ -504,30 +496,36 @@ var Room = React.createClass({
     getInitialState: function getInitialState() {
         return {
             hidden: !this.props.unit.unitAvailableSpaces,
-            recentlyTaken: false
+            recentlyTaken: false,
+            isFiltered: false
         };
-    },
-    shouldComponentUpdate: function shouldComponentUpdate(nextProps, nextState) {
-        return nextProps.unit.unitAvailableSpaces !== this.props.unit.unitAvailableSpaces;
     },
     componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
         if (this.props.unit.unitAvailableSpaces > 0 && !nextProps.unit.unitAvailableSpaces) {
             this.setState({
-                hidden: false,
                 recentlyTaken: true
             });
         }
+        this.setState({
+            isFiltered: this.isRoomFiltered(nextProps)
+        });
+    },
+    isRoomFiltered: function isRoomFiltered(props) {
+        return !props.activeBuildings[this.props.unit.location] || !props.filters.roomTypes[this.props.data.summaryRoomType] || !props.filters.roomMaxOcc[this.props.data.roomTotalSpaces] || !props.filters.specialty[this.props.unit.specialty] || !props.filters.genders[this.props.unit.gender];
     },
     render: function render() {
-        var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '';
+        var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '',
+            maybeVisible = this.state.isFiltered ? 'none' : '';
 
+        // should be permanantly excluded from the list
+        // different from "filtered", as those can be re-shown
         if (this.state.hidden) {
             return React.createElement('tr', null);
         }
 
         return React.createElement(
             'tr',
-            { className: recentlyTakenClass },
+            { className: recentlyTakenClass, style: { display: maybeVisible } },
             React.createElement(
                 'td',
                 null,
