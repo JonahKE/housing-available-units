@@ -90,7 +90,7 @@ class Housing_Available_Units {
 	 * @return string containing React app
 	 */
 	static function do_shortcode( $atts, $content = '' ) {
-		
+
 		wp_register_script( 'bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js', array(), '3.3.6' );
 		wp_register_script( 'momentjs', 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js', array(), '2.10.3' );
 		wp_register_script( 'sticky-table-headers',  plugins_url( 'js/vendor/jquery.stickytableheaders.min.js', __FILE__ ), array( 'jquery' ), '0.1.19' );
@@ -106,15 +106,32 @@ class Housing_Available_Units {
 			wp_register_script( 'hau-react-app',  plugins_url( 'js/app.js', __FILE__ ), array( 'jquery', 'bootstrap', 'react-dom', 'momentjs', 'sticky-table-headers' ), BU_HAU_VERSION, true );
 		}
 
-		wp_localize_script( 'hau-react-app', 'hau_opts', array( 
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+		$wp_upload_dir  = wp_upload_dir();
+		$units_json_url = $wp_upload_dir['baseurl'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
+		$units_js_url   = $wp_upload_dir['baseurl'] . BU_HAU_MEDIA_UNITS_JS_FILE;
+
+		$units_data = null;
+		if ( file_exists( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE ) ) {
+			$units_data = json_decode( file_get_contents( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE ) );
+		}
+
+		if ( file_exists( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JS_FILE ) ) {
+			$sync_timestamp = filemtime( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JS_FILE );
+			wp_register_script( 'hau-units-js', $units_js_url, array( 'hau-react-app' ), $sync_timestamp );
+			wp_enqueue_script( 'hau-units-js' );
+		}
+
+		wp_localize_script( 'hau-react-app', 'hau_opts', array(
+				'ajaxurl'           => admin_url( 'admin-ajax.php' ),
 				'is_user_logged_in' => is_user_logged_in(),
-				'_bootstrap' => json_decode( self::sync_all() ),
+				'_bootstrap'        => $units_data,
+				'units_json'        => $units_json_url,
 			) );
 		wp_enqueue_script( 'hau-react-app' );
 		wp_register_style( 'bootstrap-css', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css', array(), '3.3.6' );
 		wp_register_style( 'bootstrap-theme-css',  'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css', array('bootstrap-css'), '3.3.6' );
 		wp_enqueue_style( 'hau-css', plugins_url( 'css/hau.css', __FILE__ ) , array('bootstrap-theme-css'), BU_HAU_VERSION );
+
 		ob_start();
 		require 'template-shortcode.php';
 		return ob_get_clean();
