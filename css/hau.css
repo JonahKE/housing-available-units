@@ -79,10 +79,20 @@ thead th{
 }
 .filter-container{
   overflow: auto;
-  margin-bottom: 20px;
-  padding: 20px;
+  padding: 1em;
   background-color: #E4F0F7;
   border: solid 1px #0B2A3E;
+  max-width: 500px;
+  margin: 30px auto;
+}
+#housing_table .filter-container h2{
+  font-size: 1.2em;
+}
+.filter-container .bu_collapsible_section{
+  padding: 0;
+  border-left: none;
+  overflow: auto;
+  margin: 0;
 }
 .filter-group{
   float: left;
@@ -94,7 +104,7 @@ thead th{
 .bu_collapsible_container .bu_collapsible{
   background: none;
   padding: 0;
-  font-size: 1.5em;
+  /*font-size: 1.5em;*/
 }
 .headers-sticky thead th {
     padding-top: 20px;

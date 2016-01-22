@@ -30,20 +30,33 @@ var FilterCheckbox = React.createClass({
 var FilterBar = React.createClass({
     displayName: 'FilterBar',
 
+    getInitialState: function getInitialState() {
+        return {
+            visible: false
+        };
+    },
+    toggleVisible: function toggleVisible() {
+        this.setState(function (previousState) {
+            previousState.visible = !previousState.visible;
+        });
+    },
     render: function render() {
-        var f = this.props.filters;
+        var f = this.props.filters,
+            maybeVisible = this.state.visible ? 'block' : 'none',
+            icon = this.state.visible ? 'glyphicon glyphicon-minus' : 'glyphicon glyphicon-plus';
 
         return React.createElement(
             'div',
-            { className: 'filter-container bu_collapsible_container' },
+            { className: 'filter-container bu_collapsible_container', style: { overflow: 'hidden' }, style: { cursor: 'pointer' } },
             React.createElement(
                 'h2',
-                { className: 'bu_collapsible' },
-                'Filter by...'
+                { className: 'bu_collapsible', onClick: this.toggleVisible },
+                React.createElement('span', { className: icon, 'aria-label': 'Click to Filter Rooms' }),
+                ' Filter Rooms...'
             ),
             React.createElement(
                 'div',
-                { className: 'bu_collapsible_section' },
+                { className: 'bu_collapsible_section', style: { display: maybeVisible } },
                 React.createElement(
                     'div',
                     { className: 'filter-group' },
@@ -211,12 +224,12 @@ var Housing = React.createClass({
     getInitialState: function getInitialState() {
         return {
             // title               : hau_opts._bootstrap.metaData.name,
-            areas: hau_opts._bootstrap.areas,
-            units: hau_opts._bootstrap.units,
-            roomCount: hau_opts._bootstrap.totalRoomCount,
+            areas: _bootstrap.areas,
+            units: _bootstrap.units,
+            roomCount: _bootstrap.totalRoomCount,
             isDataPending: false,
             dataPending: null,
-            dataCreateTimestamp: hau_opts._bootstrap.createTime,
+            dataCreateTimestamp: _bootstrap.createTime,
             filtersActive: false,
             filters: {
                 'roomMaxOcc': {
@@ -255,7 +268,7 @@ var Housing = React.createClass({
             var now = new Date();
             if (r.hasOwnProperty('areas')) {
                 // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
-                this.setState({ areas: r.areas, lastDownloadTime: new Date() });
+                this.setState({ areas: r.areas, lastDownloadTime: new Date(), dataCreateTimestamp: r.createTime });
             }
             document.getElementById('loader').className = '';
             setTimeout(this.updateData, updateInterval * 1000);
@@ -436,7 +449,7 @@ var AreaTable = React.createClass({
                             null,
                             React.createElement(
                                 'a',
-                                { href: '#', onClick: this.showPopover, 'data-toggle': 'popover', title: 'Filter Locations' },
+                                { href: '#', onClick: this.showPopover, style: { display: 'none' }, 'data-toggle': 'popover', title: 'Filter Locations' },
                                 React.createElement('span', { className: 'glyphicon glyphicon-filter', 'aria-label': 'Click to Filter Locations' })
                             ),
                             ' Location'
@@ -506,16 +519,13 @@ var Room = React.createClass({
                 recentlyTaken: true
             });
         }
-        this.setState({
-            isFiltered: this.isRoomFiltered(nextProps)
-        });
     },
-    isRoomFiltered: function isRoomFiltered(props) {
-        return !props.activeBuildings[this.props.unit.location] || !props.filters.roomTypes[this.props.data.summaryRoomType] || !props.filters.roomMaxOcc[this.props.data.roomTotalSpaces] || !props.filters.specialty[this.props.unit.specialty] || !props.filters.genders[this.props.unit.gender];
+    isRoomFiltered: function isRoomFiltered() {
+        return !this.props.activeBuildings[this.props.unit.location] || !this.props.filters.roomTypes[this.props.data.summaryRoomType] || !this.props.filters.roomMaxOcc[this.props.data.roomTotalSpaces] || !this.props.filters.specialty[this.props.unit.specialty] || !this.props.filters.genders[this.props.unit.gender];
     },
     render: function render() {
         var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '',
-            maybeVisible = this.state.isFiltered ? 'none' : '';
+            maybeVisible = this.isRoomFiltered() ? 'none' : '';
 
         // should be permanantly excluded from the list
         // different from "filtered", as those can be re-shown
