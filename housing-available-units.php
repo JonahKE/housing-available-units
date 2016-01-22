@@ -54,7 +54,12 @@ class Housing_Available_Units {
 	public static $sync_start_time = null;
 	public static $output          = array();
 	public static $areas           = array();
-	public static $space_types     = array();
+
+	// counts
+	public static $space_types_counts   = array();
+	public static $housing_codes_counts = array();
+	public static $gender_counts        = array();
+	public static $room_size_counts     = array();
 
 	// import
 	private static $spaces        = array();
@@ -270,7 +275,7 @@ class Housing_Available_Units {
 		$output_json = file_get_contents( $units_file );
 		self::$output = json_decode( $output_json, true );
 		self::$areas = self::$output['areas'];
-		self::$space_types = self::$output['spaceTypes'];
+		self::$space_types_counts = self::$output['spaceTypes'];
 
 		// bookings
 		$bookings_data = file_get_contents( $bookings_file );
@@ -408,8 +413,14 @@ class Housing_Available_Units {
 
 			$summary_room_type = preg_replace( self::GET_LAST_HSV, '', $space['Room Type'] );
 			self::$areas[$area_id]['spacesAvailableByType'][$summary_room_type]++;
-			if ( ! in_array( $summary_room_type, self::$space_types ) ) {
-				self::$space_types[] = $summary_room_type;
+
+			// counts
+			if ( ! isset( self::$space_types_counts[$summary_room_type] ) ) {
+				self::$space_types_counts[$summary_room_type] = 0;
+			}
+
+			if ( ! isset( self::$gender_counts[$space['Gender']] ) ) {
+				self::$gender_counts[$space['Gender']] = 0;
 			}
 
 			if ( ! in_array( $space['Room Location'], self::$areas[$area_id]['buildings'] ) ) {
@@ -420,6 +431,11 @@ class Housing_Available_Units {
 			$unit_id = $space['Room Location Floor Suite'];
 			if ( ! isset( self::$areas[$area_id]['units'][$unit_id] ) ) {
 
+				$specialty = self::get_specialty_code( $space['Specialty Cd'] );
+				if ( $specialty ) {
+					self::$housing_codes_counts[$specialty] = 0;
+				}
+
 				self::$areas[$area_id]['units'][$unit_id] = array(
 					'unitID'              => $unit_id,
 					'location'            => $space['Room Location'],
@@ -428,9 +444,10 @@ class Housing_Available_Units {
 					'unitTotalSpaces'     => 0,
 					'unitAvailableSpaces' => 0,
 					'gender'              => $space['Gender'],
-					'specialty'           => self::get_specialty_code( $space['Specialty Cd'] ),
+					'specialty'           => $specialty,
 					'webImageLocation'    => $space['Web Image Location'],
 				);
+
 			}
 
 			self::$areas[$area_id]['units'][$unit_id]['unitTotalSpaces']++;
@@ -442,16 +459,23 @@ class Housing_Available_Units {
 				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['spaceIDs'][] = $space['Space ID'];
 			} else {
 				// new room
+				$room_size = self::get_room_size( $space['Room Type'] );
+
 				self::$areas[$area_id]['roomCount']++;
 				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room] = array(
 					'roomID'              => $room,
 					'summaryRoomType'     => $summary_room_type,
 					'roomType'            => $space['Room Type'],
+					'roomSize'            => $room_size,
 					'room'                => preg_replace( self::GET_FIRST_HSV, '', $room),
 					'roomTotalSpaces'     => 0,
 					'roomAvailableSpaces' => 0,
 					'spaceIDs'            => array( $space['Space ID'] ),
 				);
+
+				if ( ! isset( self::$room_size_counts[$room_size] ) ) {
+					self::$room_size_counts[$room_size] = 0;
+				}
 			}
 
 			self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['roomTotalSpaces']++;
@@ -466,6 +490,14 @@ class Housing_Available_Units {
 	 * @return null
 	 */
 	static function apply_bookings() {
+		// reset counts
+		$counts_arrays = array( 'space_types_counts', 'gender_counts', 'room_size_counts', 'housing_code_counts' );
+		foreach ( $count_arrays as $counters ) {
+			foreach ( self::$$counters as &$counter ) {
+				$counter = 0;
+			}
+		}
+
 		foreach ( self::$areas as &$area ) {
 			$area['availableSpaceCount'] = $area['totalSpaceCount'];
 			foreach ( $area['units'] as &$unit ) {
@@ -479,6 +511,14 @@ class Housing_Available_Units {
 							$area['spacesAvailableByType'][$room['summaryRoomType']]--;
 							$unit['unitAvailableSpaces']--;
 							$room['roomAvailableSpaces']--;
+
+						} else {
+							self::$space_types_counts[$room['summaryRoomType']]++;
+							self::$gender_counts[$unit['gender']]++;
+							self::$room_size_counts[$room['roomSize']]++;
+							if ( ! empty( $unit['specialty'] ) && trim( $unit['specialty'] ) ) {
+								self::$housing_codes_counts[$unit['specialty']]++;
+							}
 						}
 					}
 				}
@@ -495,7 +535,26 @@ class Housing_Available_Units {
 	 * @return string       definition if found
 	 */
 	static function get_specialty_code( $code ) {
-		return isset( self::$housing_codes[$code] ) ? self::$housing_codes[$code] : '';
+		return ! empty( self::$housing_codes[$code] ) ? self::$housing_codes[$code] : '';
+	}
+
+	/**
+	 * Room Types are weirdly stored. Sometimes they're at the end, except when:
+	 * * There is a abbreviated 2 letter code at the end
+	 * * Or when it ends with the words Paddle.
+	 *
+	 * @param  string $room_type format: Apt-4Person-Single
+	 * @return string            Single
+	 */
+	static function get_room_size( $room_type ) {
+		if ( preg_match( '!-([A-Za-z]*)-([A-Z]{2})!', $room_type, $matches ) ){
+			$room_size = $matches[1] . '-' . $matches[2];
+		} else if ( stripos( $room_type, '-Paddle' ) !== FALSE ) {
+			$room_size = preg_replace( '/.*-([^-]+)-Paddle/', '\1-Paddle', $room_type );
+		} else {
+			$room_size = preg_replace( self::GET_FIRST_HSV, '', $room_type );
+		}
+		return $room_size;
 	}
 
 	/**
@@ -548,9 +607,12 @@ class Housing_Available_Units {
 	 */
 	static function prepare_output() {
 		self::$output = array(
-			'createTime' => self::$sync_start_time,
-			'spaceTypes' => self::$space_types,
-			'areas'      => self::$areas,
+			'createTime'   => self::$sync_start_time,
+			'spaceTypes'   => self::$space_types_counts,
+			'housingCodes' => self::$housing_codes_counts,
+			'gender'       => self::$gender_counts,
+			'roomSize'     => self::$room_size_counts,
+			'areas'        => self::$areas,
 		);
 	}
 }
