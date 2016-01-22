@@ -168,7 +168,20 @@ class Housing_Available_Units {
 	 * @return true                       when successful
 	 */
 	static function parse( $space_file, $bookings_file = '', $housing_codes_file = '' ) {
+		self::parse_spaces( $space_file );
+		self::parse_bookings( $bookings_file );
+		self::parse_housing_codes( $housing_codes_file );
+		return true;
+	}
 
+	/**
+	 * Parses the Spaces CSV file into format:
+	 * [{ 'Room': 'something', 'Type': 'else' }, ... ]
+	 * @uses self::$spaces adds parsed spaces
+	 * @param  string $space_file         CSV file
+	 * @return null
+	 */
+	static function parse_spaces( $space_file ) {
 		if ( file_exists( $space_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $space_file , 'r' ) ) ) {
 				$headers = fgetcsv( $handle, 0, ',' );
@@ -185,7 +198,16 @@ class Housing_Available_Units {
 				fclose($handle);
 			}
 		}
+	}
 
+	/**
+	 * Parses the Bookings CSV file into format:
+	 * [ 1, 2 ... 999 ]
+	 * @uses self::$bookings adds parsed bookings
+	 * @param  string $bookings_file CSV file
+	 * @return null
+	 */
+	static function parse_bookings( $bookings_file ) {
 		if ( file_exists( $bookings_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $bookings_file , 'r' ) ) ) {
 				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
@@ -196,7 +218,20 @@ class Housing_Available_Units {
 				fclose($handle);
 			}
 		}
+	}
 
+	/**
+	 * Parses the Housing Codes CSV file into format:
+	 * [
+	 * 	CODE => Code Name,
+	 * 	CODE2 => Code Name 2,
+	 * 	...
+	 * ]
+	 * @uses self::$housing_codes adds parsed housing codes and descriptions
+	 * @param  string $housing_codes_file CSV file
+	 * @return null
+	 */
+	static function parse_housing_codes( $housing_codes_file ) {
 		if ( file_exists( $housing_codes_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $housing_codes_file , 'r' ) ) ) {
 				$headers = fgetcsv( $handle, 0, ',' );
@@ -212,8 +247,6 @@ class Housing_Available_Units {
 				fclose($handle);
 			}
 		}
-
-		return true;
 	}
 
 	/**
