@@ -138,6 +138,8 @@ class Housing_Available_Units {
 	 * @return string output as written to media dir file
 	 */
 	static function sync_all() {
+		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
+
 		self::$sync_start_time = current_time( 'mysql' );
 
 		if ( self::$debug ) {
