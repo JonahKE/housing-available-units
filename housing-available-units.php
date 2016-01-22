@@ -35,6 +35,7 @@ class Housing_Available_Units {
 
 	// constants
 	const PREFIX    = 'bu_hau_';
+	const SPACES_SYNC_NAME = 'sync_all';
 	const SPACES_SYNC_TIME = '3 am';
 	const SPACES_SYNC_FREQ = 'daily';
 	// regex
@@ -68,7 +69,7 @@ class Housing_Available_Units {
 		self::setup_sync();
 
 		if ( self::$debug && isset( $_GET['hau_sync'] ) ) {
-			echo self::sync();
+			echo self::sync_all();
 			die;
 		}
 	}
@@ -96,8 +97,8 @@ class Housing_Available_Units {
 
 		wp_localize_script( 'hau-react-app', 'hau_opts', array( 
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				'is_user_logged_in' => is_user_logged_in(), 
-				'_bootstrap' => json_decode( self::sync() ),
+				'is_user_logged_in' => is_user_logged_in(),
+				'_bootstrap' => json_decode( self::sync_all() ),
 			) );
 		wp_enqueue_script( 'hau-react-app' );
 		wp_register_style( 'bootstrap-css', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css', array(), '3.3.6' );
@@ -114,9 +115,9 @@ class Housing_Available_Units {
 	 */
 	static function handle_ajax(){
 		if ( self::$debug ) {
-			echo self::sync();
+			echo self::sync_all();
 			die;
-		} 
+		}
 		return;
 	}
 
@@ -136,7 +137,7 @@ class Housing_Available_Units {
 	 * Uses sample files when in Debug mode
 	 * @return string output as written to media dir file
 	 */
-	static function sync() {
+	static function sync_all() {
 		self::$sync_start_time = current_time( 'mysql' );
 
 		if ( self::$debug ) {
