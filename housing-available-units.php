@@ -61,7 +61,7 @@ class Housing_Available_Units {
 	 */
 	static function init() {
 
-		if ( defined( 'BU_HAU_DEBUG' ) ) {
+		if ( defined( 'BU_HAU_DEBUG' ) && BU_HAU_DEBUG ) {
 			self::$debug = true;
 		}
 
