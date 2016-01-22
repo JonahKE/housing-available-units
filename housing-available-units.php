@@ -152,8 +152,8 @@ class Housing_Available_Units {
 		self::process();
 		self::apply_bookings();
 		self::cleanup();
-		self::write();
 		self::prepare_output();
+		self::write();
 		return json_encode( self::$output );
 	}
 
