@@ -32,6 +32,8 @@ function setup_jsx_tags( $tag, $handle, $src ) {
 	return $tag;
 }
 add_filter( 'script_loader_tag', 'setup_jsx_tags', 10, 3 );
+register_activation_hook( __FILE__, array( 'Housing_Available_units', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'Housing_Available_units', 'deactivate' ) );
 
 class Housing_Available_Units {
 
@@ -131,7 +133,26 @@ class Housing_Available_Units {
 	}
 
 	/**
-	 * Setup sync schedules
+	 * On plugin activate, sync everything and setup sync cron jobs
+	 * @return null
+	 */
+	static function activate() {
+		self::setup_cron();
+		self::setup_sync();
+		self::sync_all();
+	}
+
+	/**
+	 * On plugin deactivate, remove sync cron jobs
+	 * @return null
+	 */
+	static function deactivate() {
+		wp_clear_scheduled_hook( self::PREFIX . self::SPACES_SYNC_NAME );
+		wp_clear_scheduled_hook( self::PREFIX . self::BOOKINGS_SYNC_NAME );
+	}
+
+	/**
+	 * Setup sync jobs
 	 * @return null
 	 */
 	static function setup_sync() {
