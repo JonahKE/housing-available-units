@@ -38,6 +38,8 @@ class Housing_Available_Units {
 	const SPACES_SYNC_NAME = 'sync_all';
 	const SPACES_SYNC_TIME = '3 am';
 	const SPACES_SYNC_FREQ = 'daily';
+	const BOOKINGS_SYNC_NAME = 'sync_bookings';
+	const BOOKINGS_SYNC_FREQ = 'quarterhour';
 	// regex
 	const GET_LAST_HSV  = '/-.*/';
 	const GET_FIRST_HSV = '/.*-/';
@@ -66,10 +68,15 @@ class Housing_Available_Units {
 			self::$debug = true;
 		}
 
-		self::setup_sync();
+		self::setup_cron();
 
 		if ( self::$debug && isset( $_GET['hau_sync'] ) ) {
 			echo self::sync_all();
+			die;
+		}
+
+		if ( self::$debug && isset( $_GET['hau_bookings_sync'] ) ) {
+			echo self::sync_bookings();
 			die;
 		}
 	}
@@ -126,10 +133,37 @@ class Housing_Available_Units {
 	 * @return null
 	 */
 	static function setup_sync() {
-		add_action( self::PREFIX . 'sync_daily', array( self, 'sync' ) );
-		if ( ! wp_next_scheduled( self::PREFIX . 'sync_daily' ) ) {
-			wp_schedule_event( strtotime( self::SPACES_SYNC_TIME ), self::SPACES_SYNC_FREQ, self::PREFIX . 'sync_daily' );
+		if ( ! wp_next_scheduled( self::PREFIX . self::SPACES_SYNC_NAME ) ) {
+			wp_schedule_event( strtotime( self::SPACES_SYNC_TIME ), self::SPACES_SYNC_FREQ, self::PREFIX . self::SPACES_SYNC_NAME );
 		}
+		if ( ! wp_next_scheduled( self::PREFIX . self::BOOKINGS_SYNC_NAME ) ) {
+			wp_schedule_event( time(), self::BOOKINGS_SYNC_FREQ, self::PREFIX . self::BOOKINGS_SYNC_NAME );
+		}
+	}
+
+	/**
+	 * Setup cron
+	 * - Adds quarterhour recurrence type
+	 * - Adds hooks to fire when sync happens
+	 * @return null
+	 */
+	static function setup_cron() {
+		add_filter( 'cron_schedules', array( __CLASS__, 'cron_add_quarter_hour' ) );
+		add_action( self::PREFIX . self::BOOKINGS_SYNC_NAME, array( __CLASS__, self::BOOKINGS_SYNC_NAME ) );
+		add_action( self::PREFIX . self::SPACES_SYNC_NAME, array( __CLASS__, self::SPACES_SYNC_NAME ) );
+	}
+
+	/**
+	 * Allow us to be able to register WP cron to run every 15 minutes
+	 * @param  array $schedules current
+	 * @return array            modified
+	 */
+	static function cron_add_quarter_hour( $schedules ) {
+	    $schedules['quarterhour'] = array(
+	        'interval' => 900,
+	        'display' => __( 'Every Quarter Hour (15 minutes)' )
+	    );
+	    return $schedules;
 	}
 
 	/**
@@ -157,6 +191,52 @@ class Housing_Available_Units {
 		self::prepare_output();
 		self::write();
 		return json_encode( self::$output );
+	}
+
+	/**
+	 * Syncs bookings on top of the saved units json file in WP Media Dir
+	 * @return null
+	 */
+	static function sync_bookings() {
+		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
+
+		self::$sync_start_time = current_time( 'mysql' );
+
+		$wp_upload_dir = wp_upload_dir();
+		$units_file = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
+
+		if ( self::$debug ) {
+			$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_BOOKINGS_FILE;
+		} else {
+			// @todo: download remote file to media dir
+		}
+
+		self::load( $units_file, $bookings_file );
+		self::apply_bookings();
+		self::prepare_output();
+		// self::write();
+		return json_encode( self::$output );
+	}
+
+	/**
+	 * Load space file and bookings file into static variables
+	 * @param  string $units_file    JSON file
+	 * @param  string $bookings_file CSV file
+	 * @return null
+	 */
+	static function load( $units_file, $bookings_file ) {
+
+		// spaces
+		$output_json = file_get_contents( $units_file );
+		self::$output = json_decode( $output_json, true );
+		self::$areas = self::$output['areas'];
+		self::$space_types = self::$output['spaceTypes'];
+
+		// bookings
+		$bookings_data = file_get_contents( $bookings_file );
+		self::parse_bookings( $bookings_file );
+
+
 	}
 
 	/**
@@ -338,7 +418,6 @@ class Housing_Available_Units {
 			// if ( ! $space_booked ) self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['roomAvailableSpaces']++;
 
 		}
-
 		return true;
 	}
 
