@@ -29,6 +29,17 @@ var FilterBar = React.createClass({
             previousState.visible = !previousState.visible;
         });
     },
+    buildCheckboxLine: function( listName, currentItem ){
+        var label = currentItem;
+        switch ( listName ){
+            case 'specialty':
+                if( '' == currentItem ){
+                    label = '(none)';
+                }
+        }
+
+        return <label><input type="checkbox" checked={this.props.filters[listName][currentItem]} name={listName} value={currentItem} onChange={this.props.updateFilters} /> {label}</label>;
+    },
     render: function(){
         var f = this.props.filters,
             maybeVisible = ( this.state.visible ) ? 'block' : 'none',
@@ -40,26 +51,20 @@ var FilterBar = React.createClass({
                     <div className="bu_collapsible_section" style={{display : maybeVisible}}>
                         <div className="filter-group">
                             <h3>Gender</h3>
-                            <label><input type="checkbox" checked={f.genders.Female} name="genders" value="Female" onChange={this.props.updateFilters} /> Female</label> <br />
-                            <label><input type="checkbox" checked={f.genders.Male} name="genders" value="Male" onChange={this.props.updateFilters} /> Male</label> <br />
-                            <label><input type="checkbox" checked={f.genders['CoEd']} name="genders" value="CoEd" onChange={this.props.updateFilters} /> Gender Neutral</label>
+                            { Object.keys(this.props.filters.genders).map( (s,i) => this.buildCheckboxLine( 'genders', s ) ) }
                         </div>
                         <div className="filter-group">
-                            <h3>Room Size</h3>
-                            <label><input type="checkbox" checked={f.roomMaxOcc['1']} name="roomMaxOcc" value="1" onChange={this.props.updateFilters} /> Single</label> <br />
-                            <label><input type="checkbox" checked={f.roomMaxOcc['2']} name="roomMaxOcc" value="2" onChange={this.props.updateFilters} /> Double</label> <br />
-                            <label><input type="checkbox" checked={f.roomMaxOcc['3']} name="roomMaxOcc" value="3" onChange={this.props.updateFilters} /> Triple</label> <br />
-                            <label><input type="checkbox" checked={f.roomMaxOcc['4']} name="roomMaxOcc" value="4" onChange={this.props.updateFilters} /> Quad</label>
+                            <h3><s>Room Size</s></h3>
+                            { Object.keys(this.props.filters.roomSizes).map( (s,i) => this.buildCheckboxLine( 'roomSizes', s ) ) }
+
                         </div>
                         <div className="filter-group">
                             <h3>Unit Type</h3>
-                            <label><input type="checkbox" checked={f.roomTypes['Apt']} name="roomTypes" value="Apt" onChange={this.props.updateFilters} /> Apt</label><br />
-                            <label><input type="checkbox" checked={f.roomTypes['Suite']} name="roomTypes" value="Suite" onChange={this.props.updateFilters} /> Suite</label><br />
-                            <label><input type="checkbox" checked={f.roomTypes['Studio']} name="roomTypes" value="Studio" onChange={this.props.updateFilters} /> Studio</label><br />
-                            <label><input type="checkbox" checked={f.roomTypes['Dorm']} name="roomTypes" value="Dorm" onChange={this.props.updateFilters} /> Dorm</label>
+                            { Object.keys(this.props.filters.spaceTypes).map( (s,i) => this.buildCheckboxLine( 'spaceTypes', s ) ) }
                         </div>
                         <div className="filter-group">
                             <h3>Specialty Housing</h3>
+                            { Object.keys(this.props.filters.specialty).map( (s,i,a) => this.buildCheckboxLine( 'specialty', s ) ) }
                         </div>
                     </div>
                 </div>
@@ -86,7 +91,7 @@ var CurrentAsOf = React.createClass({
 var Housing = React.createClass({
     mixins: [DisplayMixin],
     getInitialState: function() {
-        return { 
+        var _state = { 
             // title               : hau_opts._bootstrap.metaData.name, 
             areas               : _bootstrap.areas, 
             units               : _bootstrap.units, 
@@ -95,31 +100,21 @@ var Housing = React.createClass({
             dataPending         : null, 
             dataCreateTimestamp : _bootstrap.createTime,
             filtersActive       : false,
-            filters : {
-                'roomMaxOcc' : {
-                    '1' : true,
-                    '2' : true,
-                    '3' : true,
-                    '4' : true
-                },
-                'specialty' : {
-                    ''                  : true, 
-                    'Chinese House'     : true, 
-                    'Special House One' : true
-                },
-                'roomTypes' : {
-                    'Apt'       : true, 
-                    'Suite'     : true, 
-                    'Studio'    : true, 
-                    'Dorm'      : true
-                },
-                'genders' : {
-                    'Male'      : true,
-                    'Female'    : true,
-                    'CoEd'      : true
-                }
-            }
+            meta : {
+                'genders'       : _bootstrap.gender,
+                'housingCodes'  : _bootstrap.housingCodes,
+                'roomSizes'     : _bootstrap.roomSize,
+                'spaceTypes'    : _bootstrap.spaceTypes
+            },
+            filters : {}
         };
+        
+        Object.keys(_state.meta.genders).map(          (s,i) => { _state.filters['genders'][s] = true; } );
+        Object.keys(_state.meta.housingCodes).map(     (s,i) => { _state.filters['specialty'][s] = true; } );
+        Object.keys(_state.meta.roomSizes).map(        (s,i) => { _state.filters['roomSizes'][s] = true; } );
+        Object.keys(_state.meta.spaceTypes).map(       (s,i) => { _state.filters['spaceTypes'][s] = true; } );
+
+        return _state;
     },
     componentDidMount:function(){
         document.getElementById('loader').className = '';
@@ -132,7 +127,17 @@ var Housing = React.createClass({
             var now = new Date();
             if ( r.hasOwnProperty( 'areas' ) ){
                 // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
-                this.setState({ areas: r.areas, lastDownloadTime: new Date(), dataCreateTimestamp: r.createTime });
+                this.setState({ 
+                    areas: r.areas, 
+                    lastDownloadTime: new Date(), 
+                    dataCreateTimestamp: r.createTime,
+                    meta : {
+                        genders         : r.gender,
+                        housingCodes    : r.housingCodes,
+                        roomSizes       : r.roomSize,
+                        spaceTypes      : r.spaceTypes
+                    }
+                });
             }
             document.getElementById( 'loader' ).className = '';
             setTimeout( this.updateData, updateInterval * 1000 );
@@ -160,8 +165,8 @@ var Housing = React.createClass({
         return (
             <div>
                 <CurrentAsOf lastUpdated={this.state.dataCreateTimestamp} />
-                <FilterBar filters={this.state.filters} updateFilters={this.updateFilters} />
-                { this.state.areas.map( this.renderAreas, this ) }
+                <FilterBar filters={this.state.filters} updateFilters={this.updateFilters} metaInfo={this.state.meta} />
+                { this.state.areas.map( (s,i,a) => this.renderAreas(s,i,a) ) }
             </div>
         );
     }
@@ -314,8 +319,8 @@ var Room = React.createClass({
     isRoomFiltered: function(){
         return (
             !this.props.activeBuildings[ this.props.unit.location ] ||
-            !this.props.filters.roomTypes[ this.props.data.summaryRoomType ] ||
-            !this.props.filters.roomMaxOcc[ this.props.data.roomTotalSpaces ] ||
+            !this.props.filters.spaceTypes[ this.props.data.summaryRoomType ] ||
+            // !this.props.filters.roomSizes[ this.props.data.roomTotalSpaces ] ||
             !this.props.filters.specialty[ this.props.unit.specialty ] ||
             !this.props.filters.genders[ this.props.unit.gender ]
         );

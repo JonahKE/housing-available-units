@@ -82,7 +82,7 @@ thead th{
   padding: 1em;
   background-color: #E4F0F7;
   border: solid 1px #0B2A3E;
-  max-width: 500px;
+  max-width: 550px;
   margin: 30px auto;
 }
 #housing_table .filter-container h2{
@@ -97,9 +97,12 @@ thead th{
 .filter-group{
   float: left;
   width: 25%;
+  max-height: 200px;
+  overflow: scroll;
 }
 .filter-group label{
   font-weight: normal;
+  display: block;
 }
 .bu_collapsible_container .bu_collapsible{
   background: none;
