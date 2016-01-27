@@ -78,27 +78,39 @@ thead th{
   font-size: 0.5em;
 }
 .filter-container{
-  overflow: auto;
+  overflow: hidden;
   padding: 1em;
   background-color: #E4F0F7;
   border: solid 1px #0B2A3E;
   max-width: 550px;
   margin: 30px auto;
+  position: relative;
+}
+.filter-expand{
+  background-color: #C5D1D8;
+  text-align: center;
+  padding: 5px 10px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  font-size: 16px;
+}
+.filter-expand .glyphicon{
+  margin: 0 10px;
 }
 #housing_table .filter-container h2{
   font-size: 1.2em;
 }
 .filter-container .bu_collapsible_section{
-  padding: 0;
+  padding: 0 0 40px 0;
   border-left: none;
-  overflow: auto;
+  overflow: hidden;
   margin: 0;
 }
 .filter-group{
   float: left;
   width: 25%;
-  max-height: 200px;
-  overflow: scroll;
 }
 .filter-group label{
   font-weight: normal;

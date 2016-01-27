@@ -9,6 +9,37 @@ var DisplayMixin = {
         return qty + ' ' + ( qty == 1 ? singularLabel : pluralLabel );
     }
 };
+
+var RoomSizeMixin = {
+    roomSizeBaseName: function( roomSize ){
+        var split = roomSize.split( '-', 1 );
+        return split[0];
+    },
+    roomSizeMapToInt: function( roomSize ){
+        switch ( roomSize ){
+            case 'Single':
+                return 1;
+            case 'Double':
+                return 2;
+            case 'Triple':
+                return 3;
+            case 'Quad':
+                return 4;
+        }
+    },
+    roomSizeMapFromInt: function( i ){
+        switch ( i ){
+            case 1:
+                return 'Single';
+            case 2:
+                return 'Double';
+            case 3:
+                return 'Triple';
+            case 4:
+                return 'Quad';
+        }
+    }
+};
  
  var FilterCheckbox = React.createClass({ 
     render: function(){
@@ -19,14 +50,28 @@ var DisplayMixin = {
 });
 
 var FilterBar = React.createClass({ 
+    mixins: [RoomSizeMixin],
     getInitialState: function() {
         return { 
             visible : false, 
+            expanded : false, 
+            maxHeight : '300px'
         };
     },
     toggleVisible: function(){
         this.setState( previousState => {
             previousState.visible = !previousState.visible;
+        });
+    },
+    toggleExpanded: function(){
+        this.setState( previousState => {
+            if( previousState.expanded ){
+                previousState.maxHeight = '300px';
+                previousState.expanded = false;
+            } else {
+                previousState.maxHeight = 'none';
+                previousState.expanded = true;
+            }
         });
     },
     buildCheckboxLine: function( listName, currentItem ){
@@ -36,6 +81,7 @@ var FilterBar = React.createClass({
                 if( '' == currentItem ){
                     label = '(none)';
                 }
+                break;
         }
 
         return <label><input type="checkbox" checked={this.props.filters[listName][currentItem]} name={listName} value={currentItem} onChange={this.props.updateFilters} /> {label}</label>;
@@ -43,10 +89,12 @@ var FilterBar = React.createClass({
     render: function(){
         var f = this.props.filters,
             maybeVisible = ( this.state.visible ) ? 'block' : 'none',
-            icon = (this.state.visible) ? 'glyphicon glyphicon-minus' : 'glyphicon glyphicon-plus';
+            icon = (this.state.visible) ? 'glyphicon glyphicon-minus' : 'glyphicon glyphicon-plus',
+            expandIcon = (this.state.expanded) ? 'glyphicon glyphicon-chevron-up' : 'glyphicon glyphicon-chevron-down',
+            expandText = (this.state.expanded) ? 'Collapse' : 'Expand';
 
         return (
-                <div className="filter-container bu_collapsible_container" style={{ overflow : 'hidden' }} style={{ cursor: 'pointer' }}>
+                <div className="filter-container bu_collapsible_container" style={{ maxHeight : this.state.maxHeight, cursor: 'pointer' }}>
                     <h2 className="bu_collapsible" onClick={this.toggleVisible}><span className={icon} aria-label="Click to Filter Rooms"></span> Filter Rooms...</h2>
                     <div className="bu_collapsible_section" style={{display : maybeVisible}}>
                         <div className="filter-group">
@@ -54,7 +102,7 @@ var FilterBar = React.createClass({
                             { Object.keys(this.props.filters.genders).map( (s,i) => this.buildCheckboxLine( 'genders', s ) ) }
                         </div>
                         <div className="filter-group">
-                            <h3><s>Room Size</s></h3>
+                            <h3>Room Size</h3>
                             { Object.keys(this.props.filters.roomSizes).map( (s,i) => this.buildCheckboxLine( 'roomSizes', s ) ) }
 
                         </div>
@@ -65,6 +113,11 @@ var FilterBar = React.createClass({
                         <div className="filter-group">
                             <h3>Specialty Housing</h3>
                             { Object.keys(this.props.filters.specialty).map( (s,i,a) => this.buildCheckboxLine( 'specialty', s ) ) }
+                        </div>
+                        <div className="filter-expand" onClick={this.toggleExpanded}>
+                            <span className={expandIcon} aria-label="Click to expand filters"></span>
+                            {expandText}
+                            <span className={expandIcon} aria-label="Click to expand filters"></span>
                         </div>
                     </div>
                 </div>
@@ -89,7 +142,7 @@ var CurrentAsOf = React.createClass({
 });
 
 var Housing = React.createClass({
-    mixins: [DisplayMixin],
+    mixins: [DisplayMixin,RoomSizeMixin],
     getInitialState: function() {
         var _state = { 
             // title               : hau_opts._bootstrap.metaData.name, 
@@ -116,7 +169,10 @@ var Housing = React.createClass({
         
         Object.keys(_state.meta.genders).map(          (s,i) => { _state.filters['genders'][s] = true; } );
         Object.keys(_state.meta.housingCodes).map(     (s,i) => { _state.filters['specialty'][s] = true; } );
-        Object.keys(_state.meta.roomSizes).map(        (s,i) => { _state.filters['roomSizes'][s] = true; } );
+        Object.keys(_state.meta.roomSizes).map(        (s,i) => { 
+            s = this.roomSizeBaseName(s);
+            _state.filters['roomSizes'][s] = true; 
+        } );
         Object.keys(_state.meta.spaceTypes).map(       (s,i) => { _state.filters['spaceTypes'][s] = true; } );
 
         return _state;
@@ -249,8 +305,6 @@ var AreaTable = React.createClass({
         return <BuildingsLine building={b} key={i} updateFilter={this.filterBuildings} checked={this.state.buildingsFilter[b]} />
     },
     tableLoaded: function(table){
-        // this.areaTable = this;
-        var thisTable = this;
         jQuery(table)
             .stickyTableHeaders({
                 fixedOffset: ( hau_opts.is_user_logged_in ) ? 20 : 0
@@ -307,6 +361,7 @@ var AreaTable = React.createClass({
 });
  
 var Room = React.createClass({
+    mixins: [RoomSizeMixin],
     getInitialState: function() {
         return { 
             hidden          : ( !this.props.unit.unitAvailableSpaces ),
@@ -325,7 +380,7 @@ var Room = React.createClass({
         return (
             !this.props.activeBuildings[ this.props.unit.location ] ||
             !this.props.filters.spaceTypes[ this.props.data.summaryRoomType ] ||
-            // !this.props.filters.roomSizes[ this.props.data.roomTotalSpaces ] ||
+            !this.props.filters.roomSizes[ this.roomSizeMapFromInt( this.props.data.roomTotalSpaces ) ] ||
             !this.props.filters.specialty[ this.props.unit.specialty ] ||
             !this.props.filters.genders[ this.props.unit.gender ]
         );

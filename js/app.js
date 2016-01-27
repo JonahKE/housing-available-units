@@ -13,6 +13,37 @@ var DisplayMixin = {
     }
 };
 
+var RoomSizeMixin = {
+    roomSizeBaseName: function roomSizeBaseName(roomSize) {
+        var split = roomSize.split('-', 1);
+        return split[0];
+    },
+    roomSizeMapToInt: function roomSizeMapToInt(roomSize) {
+        switch (roomSize) {
+            case 'Single':
+                return 1;
+            case 'Double':
+                return 2;
+            case 'Triple':
+                return 3;
+            case 'Quad':
+                return 4;
+        }
+    },
+    roomSizeMapFromInt: function roomSizeMapFromInt(i) {
+        switch (i) {
+            case 1:
+                return 'Single';
+            case 2:
+                return 'Double';
+            case 3:
+                return 'Triple';
+            case 4:
+                return 'Quad';
+        }
+    }
+};
+
 var FilterCheckbox = React.createClass({
     displayName: 'FilterCheckbox',
 
@@ -30,14 +61,28 @@ var FilterCheckbox = React.createClass({
 var FilterBar = React.createClass({
     displayName: 'FilterBar',
 
+    mixins: [RoomSizeMixin],
     getInitialState: function getInitialState() {
         return {
-            visible: false
+            visible: false,
+            expanded: false,
+            maxHeight: '300px'
         };
     },
     toggleVisible: function toggleVisible() {
         this.setState(function (previousState) {
             previousState.visible = !previousState.visible;
+        });
+    },
+    toggleExpanded: function toggleExpanded() {
+        this.setState(function (previousState) {
+            if (previousState.expanded) {
+                previousState.maxHeight = '300px';
+                previousState.expanded = false;
+            } else {
+                previousState.maxHeight = 'none';
+                previousState.expanded = true;
+            }
         });
     },
     buildCheckboxLine: function buildCheckboxLine(listName, currentItem) {
@@ -47,6 +92,7 @@ var FilterBar = React.createClass({
                 if ('' == currentItem) {
                     label = '(none)';
                 }
+                break;
         }
 
         return React.createElement(
@@ -62,11 +108,13 @@ var FilterBar = React.createClass({
 
         var f = this.props.filters,
             maybeVisible = this.state.visible ? 'block' : 'none',
-            icon = this.state.visible ? 'glyphicon glyphicon-minus' : 'glyphicon glyphicon-plus';
+            icon = this.state.visible ? 'glyphicon glyphicon-minus' : 'glyphicon glyphicon-plus',
+            expandIcon = this.state.expanded ? 'glyphicon glyphicon-chevron-up' : 'glyphicon glyphicon-chevron-down',
+            expandText = this.state.expanded ? 'Collapse' : 'Expand';
 
         return React.createElement(
             'div',
-            { className: 'filter-container bu_collapsible_container', style: { overflow: 'hidden' }, style: { cursor: 'pointer' } },
+            { className: 'filter-container bu_collapsible_container', style: { maxHeight: this.state.maxHeight, cursor: 'pointer' } },
             React.createElement(
                 'h2',
                 { className: 'bu_collapsible', onClick: this.toggleVisible },
@@ -94,11 +142,7 @@ var FilterBar = React.createClass({
                     React.createElement(
                         'h3',
                         null,
-                        React.createElement(
-                            's',
-                            null,
-                            'Room Size'
-                        )
+                        'Room Size'
                     ),
                     Object.keys(this.props.filters.roomSizes).map(function (s, i) {
                         return _this.buildCheckboxLine('roomSizes', s);
@@ -127,6 +171,13 @@ var FilterBar = React.createClass({
                     Object.keys(this.props.filters.specialty).map(function (s, i, a) {
                         return _this.buildCheckboxLine('specialty', s);
                     })
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'filter-expand', onClick: this.toggleExpanded },
+                    React.createElement('span', { className: expandIcon, 'aria-label': 'Click to expand filters' }),
+                    expandText,
+                    React.createElement('span', { className: expandIcon, 'aria-label': 'Click to expand filters' })
                 )
             )
         );
@@ -176,8 +227,10 @@ var CurrentAsOf = React.createClass({
 var Housing = React.createClass({
     displayName: 'Housing',
 
-    mixins: [DisplayMixin],
+    mixins: [DisplayMixin, RoomSizeMixin],
     getInitialState: function getInitialState() {
+        var _this2 = this;
+
         var _state = {
             // title               : hau_opts._bootstrap.metaData.name,
             areas: _bootstrap.areas,
@@ -208,6 +261,7 @@ var Housing = React.createClass({
             _state.filters['specialty'][s] = true;
         });
         Object.keys(_state.meta.roomSizes).map(function (s, i) {
+            s = _this2.roomSizeBaseName(s);
             _state.filters['roomSizes'][s] = true;
         });
         Object.keys(_state.meta.spaceTypes).map(function (s, i) {
@@ -244,7 +298,7 @@ var Housing = React.createClass({
         }).bind(this));
     },
     updateFilters: function updateFilters(e) {
-        var _this2 = this;
+        var _this3 = this;
 
         var filterGroup = e.target.name,
             filterProp = e.target.value,
@@ -253,7 +307,7 @@ var Housing = React.createClass({
         switch (e.target.type) {
             case 'checkbox':
                 this.setState(function (previousState) {
-                    var initial = _this2.getInitialState();
+                    var initial = _this3.getInitialState();
 
                     previousState.filters[filterGroup][filterProp] = filterValue;
                     previousState.filtersActive = JSON.stringify(previousState.filters) !== JSON.stringify(initial.filters);
@@ -264,7 +318,7 @@ var Housing = React.createClass({
         return React.createElement(Area, { group: s, units: s.units, key: s.areaID, name: s.areaID, filters: this.state.filters, filtersActive: this.state.filtersActive });
     },
     render: function render() {
-        var _this3 = this;
+        var _this4 = this;
 
         return React.createElement(
             'div',
@@ -272,7 +326,7 @@ var Housing = React.createClass({
             React.createElement(CurrentAsOf, { lastUpdated: this.state.dataCreateTimestamp }),
             React.createElement(FilterBar, { filters: this.state.filters, updateFilters: this.updateFilters, metaInfo: this.state.meta }),
             this.state.areas.map(function (s, i, a) {
-                return _this3.renderAreas(s, i, a);
+                return _this4.renderAreas(s, i, a);
             })
         );
     }
@@ -368,8 +422,6 @@ var AreaTable = React.createClass({
         return React.createElement(BuildingsLine, { building: b, key: i, updateFilter: this.filterBuildings, checked: this.state.buildingsFilter[b] });
     },
     tableLoaded: function tableLoaded(table) {
-        // this.areaTable = this;
-        var thisTable = this;
         jQuery(table).stickyTableHeaders({
             fixedOffset: hau_opts.is_user_logged_in ? 20 : 0
         }).on('enabledStickiness.stickyTableHeaders', function () {
@@ -479,6 +531,7 @@ var AreaTable = React.createClass({
 var Room = React.createClass({
     displayName: 'Room',
 
+    mixins: [RoomSizeMixin],
     getInitialState: function getInitialState() {
         return {
             hidden: !this.props.unit.unitAvailableSpaces,
@@ -494,9 +547,7 @@ var Room = React.createClass({
         }
     },
     isRoomFiltered: function isRoomFiltered() {
-        return !this.props.activeBuildings[this.props.unit.location] || !this.props.filters.spaceTypes[this.props.data.summaryRoomType] ||
-        // !this.props.filters.roomSizes[ this.props.data.roomTotalSpaces ] ||
-        !this.props.filters.specialty[this.props.unit.specialty] || !this.props.filters.genders[this.props.unit.gender];
+        return !this.props.activeBuildings[this.props.unit.location] || !this.props.filters.spaceTypes[this.props.data.summaryRoomType] || !this.props.filters.roomSizes[this.roomSizeMapFromInt(this.props.data.roomTotalSpaces)] || !this.props.filters.specialty[this.props.unit.specialty] || !this.props.filters.genders[this.props.unit.gender];
     },
     render: function render() {
         var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '',
