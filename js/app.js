@@ -193,7 +193,12 @@ var Housing = React.createClass({
                 'roomSizes': _bootstrap.roomSize,
                 'spaceTypes': _bootstrap.spaceTypes
             },
-            filters: {}
+            filters: {
+                'specialty': { '': true },
+                'genders': {},
+                'roomSizes': {},
+                'spaceTypes': {}
+            }
         };
 
         Object.keys(_state.meta.genders).map(function (s, i) {
