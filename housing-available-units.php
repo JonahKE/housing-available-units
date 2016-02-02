@@ -82,12 +82,12 @@ class Housing_Available_Units {
 
 		self::setup_cron();
 
-		if ( self::$debug && isset( $_GET['hau_sync'] ) ) {
+		if ( isset( $_GET['hau_sync'] ) ) {
 			echo self::sync_all();
 			die;
 		}
 
-		if ( self::$debug && isset( $_GET['hau_bookings_sync'] ) ) {
+		if ( isset( $_GET['hau_bookings_sync'] ) ) {
 			echo self::sync_bookings();
 			die;
 		}
