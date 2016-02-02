@@ -565,14 +565,14 @@ class Housing_Available_Units {
 
 		if ( ! file_exists( $path ) ) {
 			if ( ! wp_mkdir_p( $path ) ) {
-				error_log( __FUNCTION__ . ': Failed to create dir for writing processed data: ' . $path );
+				error_log( __METHOD__ . ': Failed to create dir for writing processed data: ' . $path );
 				return false;
 			}
 		}
 
 		$handle = fopen( $file, 'w+' );
-		fwrite($handle, $contents );
-		fclose($handle);
+		fwrite( $handle, $contents );
+		fclose( $handle );
 	}
 
 	/**
