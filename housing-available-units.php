@@ -22,6 +22,7 @@ define( 'BU_HAU_HOUSING_CODES_FILENAME', 'Specialty Housing Codes' );
 require_once( 'includes/class-lock.php' );
 
 // define( 'BU_HAU_DEBUG', true );
+// define( 'BU_HAU_USE_SAMPLE_BOOKINGS', true );
 
 add_action( 'init', array( 'Housing_Available_Units', 'init' ), 99);
 add_shortcode( 'housing_availability', array( 'Housing_Available_Units', 'do_shortcode' ) );
@@ -342,12 +343,21 @@ class Housing_Available_Units {
 			$wp_upload_dir = wp_upload_dir();
 			$sync_dir = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_DIR . 'sync/';
 
+			// use local sample bookings
+			// call the bookings sync every 10 seconds to see it update to 6 different stages
+			if ( defined( 'BU_HAU_USE_SAMPLE_BOOKINGS' ) && BU_HAU_USE_SAMPLE_BOOKINGS ) {
+				self::$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT;
+				$bookings_num = ceil( (int) date( 's' ) / 10 ); // range: 1 to 6
+				$bookings_num = str_pad( $bookings_num, 2, '0', STR_PAD_LEFT ); // range 01 to 06
+				self::$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_BOOKINGS_FILENAME . '-' . $bookings_num . BU_HAU_FILE_EXT;
+			} else {
 				$bookings_url = self::$api_url . rawurlencode( BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT );
 				self::$bookings_file = $sync_dir . BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT;
 				$result = self::get_remote_file( $bookings_url, self::$bookings_file );
 				if ( is_wp_error( $result ) ) {
 					return $result;
 				}
+			}
 
 			if ( $bookings_only ) return;
 
