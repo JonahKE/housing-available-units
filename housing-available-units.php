@@ -19,6 +19,8 @@ define( 'BU_HAU_SPACE_FILENAME', 'Space File' );
 define( 'BU_HAU_BOOKINGS_FILENAME', 'Bookings' );
 define( 'BU_HAU_HOUSING_CODES_FILENAME', 'Specialty Housing Codes' );
 
+require_once( 'includes/class-lock.php' );
+
 // define( 'BU_HAU_DEBUG', true );
 
 add_action( 'init', array( 'Housing_Available_Units', 'init' ), 99);
@@ -291,7 +293,19 @@ class Housing_Available_Units {
 		return $content;
 	}
 
+
+	/**
+	 * Setup API constants, add a sync lock to avoid overlaps
+	 * @return WP_Error|true
+	 */
 	static function prepare_sync() {
+
+		// setup lock
+		BU_HAU_Sync_Lock::get_instance()->setup( current_time( 'timestamp' ), self::SYNC_TIMEOUT * 3 );
+		$lock_result = BU_HAU_Sync_Lock::get_instance()->lock();
+		if ( is_wp_error( $lock_result ) ) {
+			return $lock_result;
+		}
 
 		// setup API paths
 		if ( defined( 'BU_HAU_API_URL' ) && defined( 'BU_HAU_API_PASSWORD' ) && defined( 'BU_HAU_API_USERNAME' )
@@ -307,6 +321,9 @@ class Housing_Available_Units {
 		return true;
 	}
 
+	static function cleanup_sync() {
+		BU_HAU_Sync_Lock::get_instance()->unlock();
+	}
 
 	/**
 	 * Download the spaces, bookings, and housing codes files from remote
@@ -380,6 +397,8 @@ class Housing_Available_Units {
 		self::cleanup();
 		self::prepare_output();
 		self::write();
+		self::cleanup_sync();
+
 		return json_encode( self::$output );
 	}
 
@@ -400,6 +419,8 @@ class Housing_Available_Units {
 		self::apply_bookings();
 		self::prepare_output();
 		self::write();
+		self::cleanup_sync();
+
 		return json_encode( self::$output );
 	}
 
@@ -747,7 +768,7 @@ class Housing_Available_Units {
 	 */
 	static function prepare_output() {
 		self::$output = array(
-			'createTime'   => self::$sync_start_time,
+			'createTime'   => BU_HAU_Sync_Lock::get_instance()->get_formatted_start_time(),
 			'spaceTypes'   => self::$space_types_counts,
 			'housingCodes' => self::$housing_codes_counts,
 			'gender'       => self::$gender_counts,
