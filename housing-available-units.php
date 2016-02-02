@@ -37,21 +37,24 @@ function setup_jsx_tags( $tag, $handle, $src ) {
 	return $tag;
 }
 add_filter( 'script_loader_tag', 'setup_jsx_tags', 10, 3 );
-// end debug 
+// end debug
 
 class Housing_Available_Units {
 
 	// constants
 	const PREFIX    = 'bu_hau_';
+	const SYNC_TIMEOUT = 300; // 30 seconds
 	const SPACES_SYNC_NAME = 'sync_all';
 	const SPACES_SYNC_TIME = '3 am';
 	const SPACES_SYNC_FREQ = 'daily';
 	const BOOKINGS_SYNC_NAME = 'sync_bookings';
 	const BOOKINGS_SYNC_FREQ = 'quarterhour';
+
 	// regex
 	const GET_LAST_HSV  = '/-.*/';
 	const GET_FIRST_HSV = '/.*-/';
 
+	// internal
 	public static $debug = false;
 
 	// output
