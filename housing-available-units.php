@@ -481,8 +481,8 @@ class Housing_Available_Units {
 	 */
 	static function apply_bookings() {
 		// reset counts
-		$counts_arrays = array( 'space_types_counts', 'gender_counts', 'room_size_counts', 'housing_code_counts' );
-		foreach ( $count_arrays as $counters ) {
+		$counts_arrays = array( 'space_types_counts', 'gender_counts', 'room_size_counts', 'housing_codes_counts' );
+		foreach ( $counts_arrays as $counters ) {
 			foreach ( self::$$counters as &$counter ) {
 				$counter = 0;
 			}
