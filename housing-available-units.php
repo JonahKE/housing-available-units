@@ -70,6 +70,12 @@ class Housing_Available_Units {
 	private static $housing_codes = array();
 
 
+	// api
+	private static $api_url = '';
+	private static $api_username = '';
+	private static $api_password = '';
+
+
 	/**
 	 * Setup
 	 * @return null
@@ -202,6 +208,23 @@ class Housing_Available_Units {
 	}
 
 	/**
+
+	static function prepare_sync() {
+
+		// setup API paths
+		if ( defined( 'BU_HAU_API_URL' ) && defined( 'BU_HAU_API_PASSWORD' ) && defined( 'BU_HAU_API_USERNAME' )
+			 && BU_HAU_API_URL && BU_HAU_API_USERNAME && BU_HAU_API_PASSWORD ) {
+			self::$api_url = BU_HAU_API_URL;
+			self::$api_username = BU_HAU_API_USERNAME;
+			self::$api_password = BU_HAU_API_PASSWORD;
+		} else {
+			$msg = 'Missing BU_HAU_API_USERNAME, BU_HAU_API_PASSWORD or BU_HAU_API_URL constants to do sync.';
+			return new WP_Error( __METHOD__, $msg );
+		}
+
+		return true;
+	}
+
 	 * Sync the spaces, bookings, and housing codes
 	 * Uses sample files when in Debug mode
 	 * @return string output as written to media dir file
@@ -209,7 +232,6 @@ class Housing_Available_Units {
 	static function sync_all() {
 		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
 
-		self::$sync_start_time = current_time( 'mysql' );
 
 		if ( self::$debug ) {
 			$space_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_SPACE_FILE;
@@ -217,6 +239,11 @@ class Housing_Available_Units {
 			$housing_codes_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_HOUSING_CODES_FILE;
 		} else {
 			// @todo: download remote file to media dir
+		$prepare_sync = self::prepare_sync();
+		if ( is_wp_error( $prepare_sync ) ) {
+			error_log( sprintf( '[%s]: %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
+			self::cleanup_sync();
+			return false;
 		}
 
 		self::parse( $space_file, $bookings_file, $housing_codes_file );
@@ -235,8 +262,6 @@ class Housing_Available_Units {
 	static function sync_bookings() {
 		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
 
-		self::$sync_start_time = current_time( 'mysql' );
-
 		$wp_upload_dir = wp_upload_dir();
 		$units_file = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
 
@@ -244,6 +269,10 @@ class Housing_Available_Units {
 			$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_BOOKINGS_FILE;
 		} else {
 			// @todo: download remote file to media dir
+		$prepare_sync = self::prepare_sync();
+		if ( is_wp_error( $prepare_sync ) ) {
+			error_log( sprintf( '[%s]: %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
+			return false;
 		}
 
 		self::load( $units_file, $bookings_file );
