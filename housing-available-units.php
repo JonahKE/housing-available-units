@@ -14,9 +14,10 @@ define( 'BU_HAU_MEDIA_UNITS_JSON_FILE', BU_HAU_MEDIA_DIR . 'units.json' );
 define( 'BU_HAU_MEDIA_UNITS_JS_FILE', BU_HAU_MEDIA_DIR . 'units.js' );
 
 define( 'BU_HAU_SAMPLE_DIR', __DIR__ . '/sample/' );
-define( 'BU_HAU_SAMPLE_SPACE_FILE', 'Space File.csv' );
-define( 'BU_HAU_SAMPLE_BOOKINGS_FILE', 'Bookings.csv' );
-define( 'BU_HAU_SAMPLE_HOUSING_CODES_FILE', 'Specialty Housing Codes.csv' );
+define( 'BU_HAU_FILE_EXT', '.csv' );
+define( 'BU_HAU_SPACE_FILENAME', 'Space File' );
+define( 'BU_HAU_BOOKINGS_FILENAME', 'Bookings' );
+define( 'BU_HAU_HOUSING_CODES_FILENAME', 'Specialty Housing Codes' );
 
 // define( 'BU_HAU_DEBUG', true );
 
@@ -69,6 +70,10 @@ class Housing_Available_Units {
 	private static $bookings      = array();
 	private static $housing_codes = array();
 
+	// sync files
+	private static $spaces_file = '';
+	private static $bookings_file = '';
+	private static $housing_codes_file = '';
 
 	// api
 	private static $api_url = '';
@@ -208,6 +213,80 @@ class Housing_Available_Units {
 	}
 
 	/**
+	 * Get remote file from StarRez API
+	 * @param type $url
+	 * @return boolean
+	 */
+	static function get_remote_file( $url, $filename ) {
+		// $args = array(
+		// 	'timeout'             => self::SYNC_TIMEOUT,
+		// 	'headers'             => array(
+		// 		'StarRezUsername: ' . self::$api_username,
+		// 		'StarRezPassword: ' . self::$api_password,
+		// 	),
+		// 	'body'                => '<Parameters></Parameters>',
+		//  'sslcertificates'     => '/etc/pki/tls/certs/ca-bundle.crt',
+		// );
+		// $response = wp_remote_post( $url, $args );
+
+		// $error_msg = '';
+		// if ( is_wp_error( $response ) ) {
+		// 	$error_msg = sprintf( 'Could not get file for URL %s. Error: %s', $url, $response->get_error_message() );
+		// } else if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		// 	$error_msg = sprintf( 'Could not get file for URL %s. Error: %s', $url, wp_remote_retrieve_body( $response ) );
+		// }
+
+		// if ( ! empty( $error_msg ) ) {
+		// 	return new WP_Error( __METHOD__, $error_msg );
+		// }
+
+		// $content = wp_remote_retrieve_body( $response );
+
+		/**
+		 * wp_remote_post/curl is behaving really weird with the WP included certs (or newer downloaded ones).
+		 * curl_setopt( $handle, CURLOPT_CAINFO, $r['sslcertificates'] ); causes problems
+		 * Default systems' certs (/etc/pki/tls/certs/ca-bundle.crt) does work, but can't do it due to compatibility purposes.
+		 * @var array
+		 */
+		$curl_opts = array(
+			CURLOPT_HEADER         => false,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_CONNECTTIMEOUT => self::SYNC_TIMEOUT,
+			CURLOPT_TIMEOUT        => self::SYNC_TIMEOUT,
+			CURLOPT_PROXYTYPE      => CURLPROXY_HTTP,
+			CURLOPT_PROXYPORT      => WP_PROXY_PORT,
+			CURLOPT_PROXY          => WP_PROXY_HOST,
+			CURLOPT_POSTFIELDS     => '<Parameters></Parameters>',
+			CURLOPT_HTTPHEADER     => array(
+				'StarRezUsername: ' . self::$api_username,
+				'StarRezPassword: ' . self::$api_password,
+			),
+		);
+
+		$ch = curl_init( $url );
+		curl_setopt_array( $ch, $curl_opts );
+		$content = $response = curl_exec( $ch );
+		$info = curl_getinfo( $ch );
+
+		// Validate common errors
+		if ( false == $response ) {
+			$error_msg = sprintf( 'CURL error: %s URL: %s', curl_error( $ch ), $url );
+		} else if ( empty( $response ) ) {
+			$error_msg = sprintf( 'HTTP request received empty response for URL: %s', $info['url'] );
+		} else if ( $info['http_code'] != 200 ) {
+			$error_msg = sprintf( 'HTTP request received bad response code for URL: %s Code: %s', $info['url'], $info['http_code'] );
+		}
+
+		curl_close( $ch );
+
+		if ( ! empty( $error_msg ) ) {
+			return new WP_Error( __METHOD__, $error_msg );
+		}
+
+		self::write_contents( $filename, $content );
+
+		return $content;
+	}
 
 	static function prepare_sync() {
 
@@ -225,6 +304,51 @@ class Housing_Available_Units {
 		return true;
 	}
 
+
+	/**
+	 * Download the spaces, bookings, and housing codes files from remote
+	 * When in debug mode, use sample files.
+	 * @param  boolean $bookings_only if we only sync the bookings file
+	 * @return WP_Error|null
+	 */
+	static function sync_files( $bookings_only = false ) {
+
+		if ( self::$debug ) {
+			self::$spaces_file = BU_HAU_SAMPLE_DIR . BU_HAU_SPACE_FILENAME . BU_HAU_FILE_EXT;
+			self::$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT;
+			self::$housing_codes_file = BU_HAU_SAMPLE_DIR . BU_HAU_HOUSING_CODES_FILENAME . BU_HAU_FILE_EXT;
+		} else {
+			// download remote files to media dir
+			$wp_upload_dir = wp_upload_dir();
+			$sync_dir = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_DIR . 'sync/';
+
+				$bookings_url = self::$api_url . rawurlencode( BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT );
+				self::$bookings_file = $sync_dir . BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT;
+				$result = self::get_remote_file( $bookings_url, self::$bookings_file );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
+
+			if ( $bookings_only ) return;
+
+			$spaces_url = self::$api_url . rawurlencode( BU_HAU_SPACE_FILENAME . BU_HAU_FILE_EXT );
+			self::$spaces_file = $sync_dir . BU_HAU_SPACE_FILENAME . BU_HAU_FILE_EXT;
+			$result = self::get_remote_file( $spaces_url, self::$spaces_file );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+
+			$housing_codes_url = self::$api_url . rawurlencode( BU_HAU_HOUSING_CODES_FILENAME . BU_HAU_FILE_EXT );
+			self::$housing_codes_file = $sync_dir . BU_HAU_HOUSING_CODES_FILENAME . BU_HAU_FILE_EXT;
+			$result = self::get_remote_file( $housing_codes_url, self::$housing_codes_file );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
+	}
+
+	/**
 	 * Sync the spaces, bookings, and housing codes
 	 * Uses sample files when in Debug mode
 	 * @return string output as written to media dir file
@@ -233,12 +357,6 @@ class Housing_Available_Units {
 		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
 
 
-		if ( self::$debug ) {
-			$space_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_SPACE_FILE;
-			$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_BOOKINGS_FILE;
-			$housing_codes_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_HOUSING_CODES_FILE;
-		} else {
-			// @todo: download remote file to media dir
 		$prepare_sync = self::prepare_sync();
 		if ( is_wp_error( $prepare_sync ) ) {
 			error_log( sprintf( '[%s]: %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
@@ -246,7 +364,14 @@ class Housing_Available_Units {
 			return false;
 		}
 
-		self::parse( $space_file, $bookings_file, $housing_codes_file );
+		$sync_files = self::sync_files();
+		if ( is_wp_error( $sync_files ) ) {
+			error_log( sprintf( '[%s]: %s', $sync_files->get_error_code(), $sync_files->get_error_message() ) );
+			self::cleanup_sync();
+			return false;
+		}
+
+		self::parse();
 		self::process();
 		self::apply_bookings();
 		self::cleanup();
@@ -262,23 +387,16 @@ class Housing_Available_Units {
 	static function sync_bookings() {
 		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
 
-		$wp_upload_dir = wp_upload_dir();
-		$units_file = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
-
-		if ( self::$debug ) {
-			$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_SAMPLE_BOOKINGS_FILE;
-		} else {
-			// @todo: download remote file to media dir
 		$prepare_sync = self::prepare_sync();
 		if ( is_wp_error( $prepare_sync ) ) {
 			error_log( sprintf( '[%s]: %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
 			return false;
 		}
 
-		self::load( $units_file, $bookings_file );
+		self::load();
 		self::apply_bookings();
 		self::prepare_output();
-		// self::write();
+		self::write();
 		return json_encode( self::$output );
 	}
 
@@ -288,19 +406,19 @@ class Housing_Available_Units {
 	 * @param  string $bookings_file CSV file
 	 * @return null
 	 */
-	static function load( $units_file, $bookings_file ) {
+	static function load() {
+		self::sync_files( true );
 
 		// spaces
+		$wp_upload_dir = wp_upload_dir();
+		$units_file = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
 		$output_json = file_get_contents( $units_file );
 		self::$output = json_decode( $output_json, true );
 		self::$areas = self::$output['areas'];
 		self::$space_types_counts = self::$output['spaceTypes'];
 
 		// bookings
-		$bookings_data = file_get_contents( $bookings_file );
-		self::parse_bookings( $bookings_file );
-
-
+		self::parse_bookings( self::$bookings_file );
 	}
 
 	/**
@@ -311,10 +429,10 @@ class Housing_Available_Units {
 	 * @param  string $housing_codes_file CSV file
 	 * @return true                       when successful
 	 */
-	static function parse( $space_file, $bookings_file = '', $housing_codes_file = '' ) {
-		self::parse_spaces( $space_file );
-		self::parse_bookings( $bookings_file );
-		self::parse_housing_codes( $housing_codes_file );
+	static function parse() {
+		self::parse_spaces( self::$spaces_file );
+		self::parse_bookings( self::$bookings_file );
+		self::parse_housing_codes( self::$housing_codes_file );
 		return true;
 	}
 
