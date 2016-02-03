@@ -75,16 +75,18 @@ var FilterBar = React.createClass({
         });
     },
     buildCheckboxLine: function( listName, currentItem ){
-        var label = currentItem;
+        var label = currentItem,
+            displayCount = '(' + this.props.metaInfo[listName][currentItem] + ')';
         switch ( listName ){
-            case 'specialty':
+            case 'housingCodes':
                 if( '' == currentItem ){
                     label = '(none)';
+                    displayCount = '';
                 }
                 break;
         }
 
-        return <label><input type="checkbox" checked={this.props.filters[listName][currentItem]} name={listName} value={currentItem} onChange={this.props.updateFilters} /> {label}</label>;
+        return <label><input type="checkbox" checked={this.props.filters[listName][currentItem]} name={listName} value={currentItem} onChange={this.props.updateFilters} /> {label} {displayCount}</label>;
     },
     render: function(){
         var f = this.props.filters,
@@ -112,7 +114,7 @@ var FilterBar = React.createClass({
                         </div>
                         <div className="filter-group">
                             <h3>Specialty Housing</h3>
-                            { Object.keys(this.props.filters.specialty).map( (s,i,a) => this.buildCheckboxLine( 'specialty', s ) ) }
+                            { Object.keys(this.props.filters.housingCodes).map( (s,i,a) => this.buildCheckboxLine( 'housingCodes', s ) ) }
                         </div>
                         <div className="filter-expand" onClick={this.toggleExpanded}>
                             <span className={expandIcon} aria-label="Click to expand filters"></span>
@@ -160,7 +162,7 @@ var Housing = React.createClass({
                 'spaceTypes'    : _bootstrap.spaceTypes
             },
             filters : {
-                'specialty'     : { '' : true },
+                'housingCodes'     : { '' : true },
                 'genders'       : {},
                 'roomSizes'     : {},
                 'spaceTypes'    : {}
@@ -168,7 +170,7 @@ var Housing = React.createClass({
         };
         
         Object.keys(_state.meta.genders).map(          (s,i) => { _state.filters['genders'][s] = true; } );
-        Object.keys(_state.meta.housingCodes).map(     (s,i) => { _state.filters['specialty'][s] = true; } );
+        Object.keys(_state.meta.housingCodes).map(     (s,i) => { _state.filters['housingCodes'][s] = true; } );
         Object.keys(_state.meta.roomSizes).map(        (s,i) => { 
             s = this.roomSizeBaseName(s);
             _state.filters['roomSizes'][s] = true; 
@@ -381,7 +383,7 @@ var Room = React.createClass({
             !this.props.activeBuildings[ this.props.unit.location ] ||
             !this.props.filters.spaceTypes[ this.props.data.summaryRoomType ] ||
             !this.props.filters.roomSizes[ this.roomSizeMapFromInt( this.props.data.roomTotalSpaces ) ] ||
-            !this.props.filters.specialty[ this.props.unit.specialty ] ||
+            !this.props.filters.housingCodes[ this.props.unit.specialty ] ||
             !this.props.filters.genders[ this.props.unit.gender ]
         );
     },

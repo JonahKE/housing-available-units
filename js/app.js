@@ -86,11 +86,13 @@ var FilterBar = React.createClass({
         });
     },
     buildCheckboxLine: function buildCheckboxLine(listName, currentItem) {
-        var label = currentItem;
+        var label = currentItem,
+            displayCount = '(' + this.props.metaInfo[listName][currentItem] + ')';
         switch (listName) {
-            case 'specialty':
+            case 'housingCodes':
                 if ('' == currentItem) {
                     label = '(none)';
+                    displayCount = '';
                 }
                 break;
         }
@@ -100,7 +102,9 @@ var FilterBar = React.createClass({
             null,
             React.createElement('input', { type: 'checkbox', checked: this.props.filters[listName][currentItem], name: listName, value: currentItem, onChange: this.props.updateFilters }),
             ' ',
-            label
+            label,
+            ' ',
+            displayCount
         );
     },
     render: function render() {
@@ -168,8 +172,8 @@ var FilterBar = React.createClass({
                         null,
                         'Specialty Housing'
                     ),
-                    Object.keys(this.props.filters.specialty).map(function (s, i, a) {
-                        return _this.buildCheckboxLine('specialty', s);
+                    Object.keys(this.props.filters.housingCodes).map(function (s, i, a) {
+                        return _this.buildCheckboxLine('housingCodes', s);
                     })
                 ),
                 React.createElement(
@@ -247,7 +251,7 @@ var Housing = React.createClass({
                 'spaceTypes': _bootstrap.spaceTypes
             },
             filters: {
-                'specialty': { '': true },
+                'housingCodes': { '': true },
                 'genders': {},
                 'roomSizes': {},
                 'spaceTypes': {}
@@ -258,7 +262,7 @@ var Housing = React.createClass({
             _state.filters['genders'][s] = true;
         });
         Object.keys(_state.meta.housingCodes).map(function (s, i) {
-            _state.filters['specialty'][s] = true;
+            _state.filters['housingCodes'][s] = true;
         });
         Object.keys(_state.meta.roomSizes).map(function (s, i) {
             s = _this2.roomSizeBaseName(s);
@@ -547,7 +551,7 @@ var Room = React.createClass({
         }
     },
     isRoomFiltered: function isRoomFiltered() {
-        return !this.props.activeBuildings[this.props.unit.location] || !this.props.filters.spaceTypes[this.props.data.summaryRoomType] || !this.props.filters.roomSizes[this.roomSizeMapFromInt(this.props.data.roomTotalSpaces)] || !this.props.filters.specialty[this.props.unit.specialty] || !this.props.filters.genders[this.props.unit.gender];
+        return !this.props.activeBuildings[this.props.unit.location] || !this.props.filters.spaceTypes[this.props.data.summaryRoomType] || !this.props.filters.roomSizes[this.roomSizeMapFromInt(this.props.data.roomTotalSpaces)] || !this.props.filters.housingCodes[this.props.unit.specialty] || !this.props.filters.genders[this.props.unit.gender];
     },
     render: function render() {
         var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '',
