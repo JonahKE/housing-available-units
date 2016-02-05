@@ -125,7 +125,7 @@ var FilterBar = React.createClass({
 var BuildingsLine = React.createClass({ 
     render: function(){
         return (
-                <div><label><input type="checkbox" name={this.props.building} checked={this.props.checked} onChange={this.props.updateFilter} /> {this.props.building}</label><br /></div>
+                <li><label><input type="checkbox" name={this.props.building} checked={this.props.checked} onChange={this.props.updateFilter} /> {this.props.building}</label><br /></li>
             );
     }
 });
@@ -343,9 +343,10 @@ var AreaTable = React.createClass({
                             <th>Unit #</th>
                             <th>Room Type</th>
                             <th>Room #</th>
-                            <th>Spaces<br />Available</th>
-                            <th>Gender</th>
-                            <th>Specialty</th>
+                            <th style={{textAlign:'center'}}>Spaces<br />Available</th>
+                            <th style={{textAlign:'center'}}>Gender</th>
+                            <th style={{textAlign:'center'}}>Specialty</th>
+                            <th style={{textAlign:'center'}}>Floorplan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -399,9 +400,10 @@ var Room = React.createClass({
                 <td>{this.props.unit.unitID}</td>
                 <td>{this.props.data.roomType}</td>
                 <td>{this.props.data.room}</td>
-                <td>{this.props.unit.unitAvailableSpaces} of {this.props.unit.unitTotalSpaces}</td>
-                <td>{this.props.unit.gender}</td>
-                <td>{this.props.unit.specialty}</td>
+                <td style={{textAlign:'center'}}>{this.props.unit.unitAvailableSpaces} of {this.props.unit.unitTotalSpaces}</td>
+                <td style={{textAlign:'center'}}>{this.props.unit.gender}</td>
+                <td style={{textAlign:'center'}}>{this.props.unit.specialty}</td>
+                <td style={{textAlign:'center'}}><a href="/" target="_blank"><span className="glyphicon glyphicon-picture" aria-hidden="true" aria-label="View floorplan"></span></a></td>
             </tr>
         );
     }

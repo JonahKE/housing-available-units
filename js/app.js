@@ -186,7 +186,7 @@ var BuildingsLine = React.createClass({
 
     render: function render() {
         return React.createElement(
-            'div',
+            'li',
             null,
             React.createElement(
                 'label',
@@ -498,20 +498,25 @@ var AreaTable = React.createClass({
                         ),
                         React.createElement(
                             'th',
-                            null,
+                            { style: { textAlign: 'center' } },
                             'Spaces',
                             React.createElement('br', null),
                             'Available'
                         ),
                         React.createElement(
                             'th',
-                            null,
+                            { style: { textAlign: 'center' } },
                             'Gender'
                         ),
                         React.createElement(
                             'th',
-                            null,
+                            { style: { textAlign: 'center' } },
                             'Specialty'
+                        ),
+                        React.createElement(
+                            'th',
+                            { style: { textAlign: 'center' } },
+                            'Floorplan'
                         )
                     )
                 ),
@@ -586,20 +591,29 @@ var Room = React.createClass({
             ),
             React.createElement(
                 'td',
-                null,
+                { style: { textAlign: 'center' } },
                 this.props.unit.unitAvailableSpaces,
                 ' of ',
                 this.props.unit.unitTotalSpaces
             ),
             React.createElement(
                 'td',
-                null,
+                { style: { textAlign: 'center' } },
                 this.props.unit.gender
             ),
             React.createElement(
                 'td',
-                null,
+                { style: { textAlign: 'center' } },
                 this.props.unit.specialty
+            ),
+            React.createElement(
+                'td',
+                { style: { textAlign: 'center' } },
+                React.createElement(
+                    'a',
+                    { href: '/', target: '_blank' },
+                    React.createElement('span', { className: 'glyphicon glyphicon-picture', 'aria-hidden': 'true', 'aria-label': 'View floorplan' })
+                )
             )
         );
     }
