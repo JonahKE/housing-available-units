@@ -82,7 +82,7 @@ thead th{
   padding: 1em;
   background-color: #E4F0F7;
   border: solid 1px #0B2A3E;
-  max-width: 550px;
+  max-width: 600px;
   margin: 30px auto;
   position: relative;
 }
@@ -110,11 +110,36 @@ thead th{
 }
 .filter-group{
   float: left;
-  width: 25%;
+  width: 33%;
+}
+.filter-group.specialty{
+  display: block;
+  clear:left;
+  width: 100%;
 }
 .filter-group label{
   font-weight: normal;
   display: block;
+}
+.filter-group.unit-type .filter-box {
+  float: left;
+  width: 50%;
+}
+.filter-group.specialty .filter-box {
+  float: left;
+  width: 33%;
+  display: block;
+  height: 42px;
+}
+.filter-group.specialty .filter-box label{
+  padding-right: 10px;
+  margin-left: 18px;
+}
+.filter-group.specialty .filter-box label input{
+  margin-left: -16px;
+}
+.filter-group.unit-type .filter-box label{
+  padding-right: 2px;
 }
 .bu_collapsible_container .bu_collapsible{
   background: none;
@@ -162,4 +187,12 @@ thead th{
     float: left;
     margin: 0 10px 0 0;
     padding: 0;
+}
+#content .main{
+  width: 1200px;
+  margin: auto;
+  max-width: 90%;
+}
+#content .main .container{
+  width: 100%;
 }

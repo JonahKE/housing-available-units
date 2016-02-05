@@ -40,14 +40,6 @@ var RoomSizeMixin = {
         }
     }
 };
- 
- var FilterCheckbox = React.createClass({ 
-    render: function(){
-        return (
-            <label><input type="checkbox" checked={this.props.isChecked} name={this.props.category} value={this.props.name} onChange={this.props.updateFilters} /> {this.props.name}</label>
-            );
-    }
-});
 
 var FilterBar = React.createClass({ 
     mixins: [RoomSizeMixin],
@@ -76,17 +68,20 @@ var FilterBar = React.createClass({
     },
     buildCheckboxLine: function( listName, currentItem ){
         var label = currentItem,
-            displayCount = '(' + this.props.metaInfo[listName][currentItem] + ')';
+            displayCount = '(' + this.props.metaInfo[listName][currentItem] + ')',
+            k = "checkbox_" + listName + "_" + currentItem;
+
         switch ( listName ){
             case 'housingCodes':
                 if( '' == currentItem ){
-                    label = '(none)';
-                    displayCount = '';
+                    // label = '(none)';
+                    // displayCount = '';
+                    return;
                 }
                 break;
         }
 
-        return <label><input type="checkbox" checked={this.props.filters[listName][currentItem]} name={listName} value={currentItem} onChange={this.props.updateFilters} /> {label} {displayCount}</label>;
+        return ( <div className="filter-box" key={k}><label><input type="checkbox" checked={this.props.filters[listName][currentItem]} name={listName} value={currentItem} onChange={this.props.updateFilters} /> {label} {displayCount}</label></div> );
     },
     render: function(){
         var f = this.props.filters,
@@ -108,11 +103,11 @@ var FilterBar = React.createClass({
                             { Object.keys(this.props.filters.roomSizes).map( (s,i) => this.buildCheckboxLine( 'roomSizes', s ) ) }
 
                         </div>
-                        <div className="filter-group">
+                        <div className="filter-group unit-type">
                             <h3>Unit Type</h3>
                             { Object.keys(this.props.filters.spaceTypes).map( (s,i) => this.buildCheckboxLine( 'spaceTypes', s ) ) }
                         </div>
-                        <div className="filter-group">
+                        <div className="filter-group specialty">
                             <h3>Specialty Housing</h3>
                             { Object.keys(this.props.filters.housingCodes).map( (s,i,a) => this.buildCheckboxLine( 'housingCodes', s ) ) }
                         </div>

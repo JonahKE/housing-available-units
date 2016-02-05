@@ -44,20 +44,6 @@ var RoomSizeMixin = {
     }
 };
 
-var FilterCheckbox = React.createClass({
-    displayName: 'FilterCheckbox',
-
-    render: function render() {
-        return React.createElement(
-            'label',
-            null,
-            React.createElement('input', { type: 'checkbox', checked: this.props.isChecked, name: this.props.category, value: this.props.name, onChange: this.props.updateFilters }),
-            ' ',
-            this.props.name
-        );
-    }
-});
-
 var FilterBar = React.createClass({
     displayName: 'FilterBar',
 
@@ -87,24 +73,31 @@ var FilterBar = React.createClass({
     },
     buildCheckboxLine: function buildCheckboxLine(listName, currentItem) {
         var label = currentItem,
-            displayCount = '(' + this.props.metaInfo[listName][currentItem] + ')';
+            displayCount = '(' + this.props.metaInfo[listName][currentItem] + ')',
+            k = "checkbox_" + listName + "_" + currentItem;
+
         switch (listName) {
             case 'housingCodes':
                 if ('' == currentItem) {
-                    label = '(none)';
-                    displayCount = '';
+                    // label = '(none)';
+                    // displayCount = '';
+                    return;
                 }
                 break;
         }
 
         return React.createElement(
-            'label',
-            null,
-            React.createElement('input', { type: 'checkbox', checked: this.props.filters[listName][currentItem], name: listName, value: currentItem, onChange: this.props.updateFilters }),
-            ' ',
-            label,
-            ' ',
-            displayCount
+            'div',
+            { className: 'filter-box', key: k },
+            React.createElement(
+                'label',
+                null,
+                React.createElement('input', { type: 'checkbox', checked: this.props.filters[listName][currentItem], name: listName, value: currentItem, onChange: this.props.updateFilters }),
+                ' ',
+                label,
+                ' ',
+                displayCount
+            )
         );
     },
     render: function render() {
@@ -154,7 +147,7 @@ var FilterBar = React.createClass({
                 ),
                 React.createElement(
                     'div',
-                    { className: 'filter-group' },
+                    { className: 'filter-group unit-type' },
                     React.createElement(
                         'h3',
                         null,
@@ -166,7 +159,7 @@ var FilterBar = React.createClass({
                 ),
                 React.createElement(
                     'div',
-                    { className: 'filter-group' },
+                    { className: 'filter-group specialty' },
                     React.createElement(
                         'h3',
                         null,
