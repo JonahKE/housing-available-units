@@ -558,6 +558,7 @@ class Housing_Available_Units {
 
 	/**
 	 * Process the areas data into structured React-consumable data
+	 * Does not apply any bookings. That happens in `apply_bookings()`.
 	 * @return null
 	 */
 	static function process() {
@@ -568,8 +569,6 @@ class Housing_Available_Units {
 
 		self::$areas = array();
 		foreach ( self::$spaces as $space ) {
-
-			// $space_booked = in_array( $space['Space ID'], $data['bookings'] ) ? true : false;
 
 			// areas
 			$area_id = $space['Room Location Area'];
@@ -591,7 +590,6 @@ class Housing_Available_Units {
 			}
 
 			self::$areas[$area_id]['totalSpaceCount']++;
-			// if ( ! $space_booked ) self::$areas[$area_id]['availableSpaceCount']++;
 
 			$summary_room_type = preg_replace( self::GET_LAST_HSV, '', $space['Room Type'] );
 
@@ -637,7 +635,6 @@ class Housing_Available_Units {
 			}
 
 			self::$areas[$area_id]['units'][$unit_id]['unitTotalSpaces']++;
-			// if ( ! $space_booked ) self::$areas[$area_id]['units'][$unit_id]['unitAvailableSpaces']++;
 
 			// rooms
 			$room = $space['Room Base'];
@@ -665,7 +662,6 @@ class Housing_Available_Units {
 			}
 
 			self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['roomTotalSpaces']++;
-			// if ( ! $space_booked ) self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['roomAvailableSpaces']++;
 
 		}
 		return true;
