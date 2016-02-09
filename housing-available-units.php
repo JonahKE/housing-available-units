@@ -594,7 +594,11 @@ class Housing_Available_Units {
 			// if ( ! $space_booked ) self::$areas[$area_id]['availableSpaceCount']++;
 
 			$summary_room_type = preg_replace( self::GET_LAST_HSV, '', $space['Room Type'] );
-			self::$areas[$area_id]['spacesAvailableByType'][$summary_room_type]++;
+
+			// Add any weird room types (not mentioned above)
+			if ( ! isset( self::$areas[$area_id]['spacesAvailableByType'][$summary_room_type] ) ) {
+				self::$areas[$area_id]['spacesAvailableByType'][$summary_room_type] = 0;
+			}
 
 			// counts
 			if ( ! isset( self::$space_types_counts[$summary_room_type] ) ) {
@@ -682,6 +686,11 @@ class Housing_Available_Units {
 
 		foreach ( self::$areas as &$area ) {
 			$area['availableSpaceCount'] = $area['totalSpaceCount'];
+
+			foreach ( $area['spacesAvailableByType'] as &$count ) {
+				$count = 0;
+			}
+
 			foreach ( $area['units'] as &$unit ) {
 				$unit['unitAvailableSpaces'] = $unit['unitTotalSpaces'];
 				foreach ( $unit['rooms'] as &$room ) {
@@ -690,11 +699,11 @@ class Housing_Available_Units {
 						if ( in_array( $space_id, self::$bookings ) ) {
 							// space is booked, update totals
 							$area['availableSpaceCount']--;
-							$area['spacesAvailableByType'][$room['summaryRoomType']]--;
 							$unit['unitAvailableSpaces']--;
 							$room['roomAvailableSpaces']--;
 
 						} else {
+							$area['spacesAvailableByType'][$room['summaryRoomType']]++;
 							self::$space_types_counts[$room['summaryRoomType']]++;
 							self::$gender_counts[$unit['gender']]++;
 							self::$room_size_counts[$room['roomSize']]++;
