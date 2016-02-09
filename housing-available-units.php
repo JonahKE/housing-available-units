@@ -408,7 +408,7 @@ class Housing_Available_Units {
 	 * Uses sample files when in Debug mode
 	 * @return string output as written to media dir file
 	 */
-	static function sync( $args ) {
+	static function sync( $args = array() ) {
 		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
 
 		self::$sync_options = wp_parse_args( $args, self::$sync_options );
