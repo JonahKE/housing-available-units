@@ -333,6 +333,19 @@ class Housing_Available_Units {
 			return new WP_Error( __METHOD__, $msg );
 		}
 
+
+		// extra safety check
+		// if sync is bookings only, ensure we have required files
+		if ( ! self::$debug && self::$sync_options['bookings_only'] ) {
+
+			$wp_upload_dir = wp_upload_dir();
+			$units_file = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
+
+			if ( ! file_exists( $units_file ) ) {
+				error_log( sprintf( '[%s]: Missing previously generated files. Sync all files.', __METHOD__ ) );
+				self::$sync_options['bookings_only'] = false;
+			}
+		}
 		return true;
 	}
 
