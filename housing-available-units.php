@@ -415,14 +415,14 @@ class Housing_Available_Units {
 
 		$prepare_sync = self::prepare_sync();
 		if ( is_wp_error( $prepare_sync ) ) {
-			error_log( sprintf( '[%s]: Killing sync. %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
+			error_log( sprintf( '[%s]: Aborting sync. %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
 			self::cleanup_sync();
 			return false;
 		}
 
 		$sync_files = self::sync_files();
 		if ( is_wp_error( $sync_files ) ) {
-			error_log( sprintf( '[%s]: Killing sync. %s', $sync_files->get_error_code(), $sync_files->get_error_message() ) );
+			error_log( sprintf( '[%s]: Aborting sync. %s', $sync_files->get_error_code(), $sync_files->get_error_message() ) );
 			self::cleanup_sync();
 			return false;
 		}

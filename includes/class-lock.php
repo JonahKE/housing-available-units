@@ -30,7 +30,7 @@ class BU_HAU_Sync_Lock {
 		self::auto_unlock_on_idle();
 		$lock = get_option( self::SYNC_LOCK );
 		if ( $lock ) {
-			$msg = 'Sync already started at ' . $lock;
+			$msg = 'Sync already started at ' . date( self::$datetime_format, $lock );
 			return new WP_Error( __METHOD__, $msg );
 		}
 
