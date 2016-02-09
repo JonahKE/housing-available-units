@@ -1,9 +1,10 @@
 <?php
 
 class BU_HAU_Sync_Lock {
-	const SYNC_LOCK    = 'bu_hau_sync_lock';
+	const SYNC_LOCK = 'bu_hau_sync_lock';
     private static $instance;
 	private static $debug     = false;
+	private static $datetime_format = 'Y-m-d H:i:s';
 	public static $start_time = null;
 	public static $max_time   = null;
 
@@ -29,7 +30,7 @@ class BU_HAU_Sync_Lock {
 		self::auto_unlock_on_idle();
 		$lock = get_option( self::SYNC_LOCK );
 		if ( $lock ) {
-			$msg = 'Skipping sync. Sync already started at ' . $lock;
+			$msg = 'Sync already started at ' . $lock;
 			return new WP_Error( __METHOD__, $msg );
 		}
 
@@ -53,17 +54,17 @@ class BU_HAU_Sync_Lock {
 			$current_time = time();
 
 			if ( $lock_time < $current_time - self::$max_time ) {
-				error_log( sprintf( '[%s] Unlocking idle lock from %s at %s.', __METHOD__, date( 'Y-m-d H:i:s', $lock_time ), date( 'Y-m-d H:i:s', $current_time ) ) );
+				error_log( sprintf( '[%s] Unlocking idle lock from %s at %s.', __METHOD__, date( self::$datetime_format, $lock_time ), date( self::$datetime_format, $current_time ) ) );
 				self::unlock();
 			} else {
-				error_log( sprintf( '[%s] Cannot unlock at %s. Lock time: %s, Max time: %s.', __METHOD__, date( 'Y-m-d H:i:s', $lock_time ), date( 'Y-m-d H:i:s', $current_time ), self::$max_time ) );
+				error_log( sprintf( '[%s] Cannot unlock at %s. Lock time: %s, Max time: %s.', __METHOD__, date( self::$datetime_format, $lock_time ), date( self::$datetime_format, $current_time ), self::$max_time ) );
 			}
 		}
 	}
 
 	static function get_start_time( $formatted = false ) {
-		if ( 'formatted' === $type ) {
-			return date( 'Y-m-d H:i:s', self::$start_time );
+		if ( true == $formatted ) {
+			return date( self::$datetime_format, self::$start_time );
 		}
 		return self::$start_time;
 	}
