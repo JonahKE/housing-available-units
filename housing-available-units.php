@@ -169,13 +169,13 @@ class Housing_Available_Units {
 	}
 
 	/**
-	 * On plugin activate, sync everything and setup sync cron jobs
+	 * On plugin activate, setup sync cron jobs
 	 * @return null
 	 */
 	static function activate() {
 		self::setup_cron();
 		self::setup_sync();
-		self::sync_all();
+		// self::sync(); // disabling sync on activate since it takes too long within a page request
 	}
 
 	/**
