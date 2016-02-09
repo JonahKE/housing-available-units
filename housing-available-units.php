@@ -373,7 +373,7 @@ class Housing_Available_Units {
 			// call the bookings sync every 10 seconds to see it update to 6 different stages
 			if ( defined( 'BU_HAU_USE_SAMPLE_BOOKINGS' ) && BU_HAU_USE_SAMPLE_BOOKINGS ) {
 				self::$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT;
-				$bookings_num = ceil( (int) date( 's' ) / 10 ); // range: 1 to 6
+				$bookings_num = ( (int) date( 'i' ) % 6 ) + 1; // range: 1 to 6, changes every minute
 				$bookings_num = str_pad( $bookings_num, 2, '0', STR_PAD_LEFT ); // range 01 to 06
 				self::$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_BOOKINGS_FILENAME . '-' . $bookings_num . BU_HAU_FILE_EXT;
 			} else {
