@@ -312,7 +312,7 @@ class Housing_Available_Units {
 	static function prepare_sync() {
 
 		// setup lock
-		BU_HAU_Sync_Lock::get_instance()->setup( current_time( 'timestamp' ), self::SYNC_TIMEOUT * 3 );
+		BU_HAU_Sync_Lock::get_instance()->setup( time(), self::SYNC_TIMEOUT * 3 );
 		$lock_result = BU_HAU_Sync_Lock::get_instance()->lock();
 		if ( is_wp_error( $lock_result ) ) {
 			return $lock_result;
@@ -348,7 +348,7 @@ class Housing_Available_Units {
 
 	static function cleanup_sync() {
 		BU_HAU_Sync_Lock::get_instance()->unlock();
-		$duration = current_time( 'timestamp' ) - BU_HAU_Sync_Lock::get_instance()->get_start_time();
+		$duration = time() - BU_HAU_Sync_Lock::get_instance()->get_start_time();
 		if ( self::$debug ) error_log( sprintf( '[%s]: Completed %s sync in %s seconds.', __METHOD__, self::get_sync_type(), $duration ) );
 	}
 

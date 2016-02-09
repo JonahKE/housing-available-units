@@ -50,7 +50,7 @@ class BU_HAU_Sync_Lock {
 	 */
 	static function auto_unlock_on_idle() {
 		if ( $lock_time = get_option( self::SYNC_LOCK ) ) {
-			$current_time = current_time( 'timestamp' );
+			$current_time = time();
 
 			if ( $lock_time < $current_time - self::$max_time ) {
 				error_log( sprintf( '[%s] Unlocking idle lock from %s at %s.', __METHOD__, date( 'Y-m-d H:i:s', $lock_time ), date( 'Y-m-d H:i:s', $current_time ) ) );
