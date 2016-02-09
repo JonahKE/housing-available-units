@@ -259,9 +259,9 @@ class Housing_Available_Units {
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_CONNECTTIMEOUT => self::SYNC_TIMEOUT,
 			CURLOPT_TIMEOUT        => self::SYNC_TIMEOUT,
-			CURLOPT_PROXYTYPE      => CURLPROXY_HTTP,
-			CURLOPT_PROXYPORT      => WP_PROXY_PORT,
-			CURLOPT_PROXY          => WP_PROXY_HOST,
+			// CURLOPT_PROXYTYPE      => CURLPROXY_HTTP,
+			// CURLOPT_PROXYPORT      => WP_PROXY_PORT,
+			// CURLOPT_PROXY          => WP_PROXY_HOST,
 			CURLOPT_POSTFIELDS     => '<Parameters></Parameters>',
 			CURLOPT_HTTPHEADER     => array(
 				'StarRezUsername: ' . self::$api_username,
