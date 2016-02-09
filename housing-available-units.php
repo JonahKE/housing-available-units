@@ -778,7 +778,7 @@ class Housing_Available_Units {
 	 */
 	static function prepare_output() {
 		self::$output = array(
-			'createTime'   => BU_HAU_Sync_Lock::get_instance()->get_formatted_start_time(),
+			'createTime'   => BU_HAU_Sync_Lock::get_instance()->get_start_time( true ),
 			'spaceTypes'   => self::$space_types_counts,
 			'housingCodes' => self::$housing_codes_counts,
 			'gender'       => self::$gender_counts,

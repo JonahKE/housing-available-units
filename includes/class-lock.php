@@ -61,8 +61,10 @@ class BU_HAU_Sync_Lock {
 		}
 	}
 
-	static function get_formatted_start_time() {
-		return date( 'Y-m-d H:i:s', self::$start_time );
+	static function get_start_time( $formatted = false ) {
+		if ( 'formatted' === $type ) {
+			return date( 'Y-m-d H:i:s', self::$start_time );
+		}
+		return self::$start_time;
 	}
-
 }
