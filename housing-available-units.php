@@ -104,11 +104,13 @@ class Housing_Available_Units {
 		self::setup_cron();
 
 		if ( isset( $_GET['hau_sync'] ) ) {
+			if ( self::$debug ) error_log( sprintf( '[%s]: Explicitly firing all sync.', __METHOD__ ) );
 			echo self::sync();
 			die;
 		}
 
 		if ( isset( $_GET['hau_bookings_sync'] ) ) {
+			if ( self::$debug ) error_log( sprintf( '[%s]: Explicitly firing bookings sync.', __METHOD__ ) );
 			$args = array( 'bookings_only' => true );
 			echo self::sync( $args );
 			die;
@@ -333,6 +335,7 @@ class Housing_Available_Units {
 			return new WP_Error( __METHOD__, $msg );
 		}
 
+		if ( self::$debug ) error_log( sprintf( '[%s]: Starting %s sync.', __METHOD__, self::get_sync_type() ) );
 
 		// extra safety check
 		// if sync is bookings only, ensure we have required files
@@ -351,6 +354,8 @@ class Housing_Available_Units {
 
 	static function cleanup_sync() {
 		BU_HAU_Sync_Lock::get_instance()->unlock();
+		$duration = current_time( 'timestamp' ) - BU_HAU_Sync_Lock::get_instance()->get_start_time();
+		if ( self::$debug ) error_log( sprintf( '[%s]: Completed %s sync in %s seconds.', __METHOD__, self::get_sync_type(), $duration ) );
 	}
 
 	/**
@@ -376,6 +381,7 @@ class Housing_Available_Units {
 				$bookings_num = ( (int) date( 'i' ) % 6 ) + 1; // range: 1 to 6, changes every minute
 				$bookings_num = str_pad( $bookings_num, 2, '0', STR_PAD_LEFT ); // range 01 to 06
 				self::$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_BOOKINGS_FILENAME . '-' . $bookings_num . BU_HAU_FILE_EXT;
+				if ( self::$debug ) error_log( sprintf( '[%s]: BU_HAU_USE_SAMPLE_BOOKINGS turned on. Using %s.', __METHOD__, basename( self::$bookings_file ) ) );
 			} else {
 				$bookings_url = self::$api_url . rawurlencode( BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT );
 				self::$bookings_file = $sync_dir . BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT;
@@ -415,14 +421,14 @@ class Housing_Available_Units {
 
 		$prepare_sync = self::prepare_sync();
 		if ( is_wp_error( $prepare_sync ) ) {
-			error_log( sprintf( '[%s]: %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
+			error_log( sprintf( '[%s]: Killing sync. %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
 			self::cleanup_sync();
 			return false;
 		}
 
 		$sync_files = self::sync_files();
 		if ( is_wp_error( $sync_files ) ) {
-			error_log( sprintf( '[%s]: %s', $sync_files->get_error_code(), $sync_files->get_error_message() ) );
+			error_log( sprintf( '[%s]: Killing sync. %s', $sync_files->get_error_code(), $sync_files->get_error_message() ) );
 			self::cleanup_sync();
 			return false;
 		}
@@ -709,6 +715,14 @@ class Housing_Available_Units {
 			unset( $unit );
 		}
 		unset( $area );
+	}
+
+	/**
+	 * Specifies in text if we're syncing bookings only or all/everything.
+	 * @return string
+	 */
+	static function get_sync_type() {
+		return self::$sync_options['bookings_only'] ? 'bookings only' : 'all';
 	}
 
 	/**
