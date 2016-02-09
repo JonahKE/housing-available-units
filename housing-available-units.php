@@ -131,11 +131,6 @@ class Housing_Available_Units {
 		$units_json_url = $wp_upload_dir['baseurl'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
 		$units_js_url   = $wp_upload_dir['baseurl'] . BU_HAU_MEDIA_UNITS_JS_FILE;
 
-		$units_data = null;
-		if ( file_exists( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE ) ) {
-			$units_data = json_decode( file_get_contents( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE ) );
-		}
-
 		if ( file_exists( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JS_FILE ) ) {
 			$sync_timestamp = filemtime( $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JS_FILE );
 			wp_enqueue_script( 'hau-units-js', $units_js_url, array(), $sync_timestamp );
@@ -155,7 +150,6 @@ class Housing_Available_Units {
 		wp_localize_script( 'hau-react-app', 'hau_opts', array(
 				'ajaxurl'           => admin_url( 'admin-ajax.php' ),
 				'is_user_logged_in' => is_user_logged_in(),
-				// '_bootstrap'        => $units_data,
 				'units_json'        => $units_json_url,
 			) );
 		wp_enqueue_script( 'hau-react-app' );
