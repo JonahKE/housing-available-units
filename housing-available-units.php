@@ -743,9 +743,9 @@ class Housing_Available_Units {
 	 */
 	static function get_room_size( $room_type ) {
 		if ( preg_match( '!-([A-Za-z]*)-([A-Z]{2})!', $room_type, $matches ) ){
-			$room_size = $matches[1] . '-' . $matches[2];
+			$room_size = $matches[1];
 		} else if ( stripos( $room_type, '-Paddle' ) !== FALSE ) {
-			$room_size = preg_replace( '/.*-([^-]+)-Paddle/', '\1-Paddle', $room_type );
+			$room_size = preg_replace( '/.*-([^-]+)-Paddle/', '\1', $room_type );
 		} else {
 			$room_size = preg_replace( self::GET_FIRST_HSV, '', $room_type );
 		}
