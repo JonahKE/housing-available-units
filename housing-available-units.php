@@ -567,6 +567,11 @@ class Housing_Available_Units {
 			array_splice( self::$spaces, intval( $_GET['hau_limit'] ) );
 		}
 
+		// Sort spaces using natural order case-insensitive comparisons
+		usort( self::$spaces, function( $a, $b ) {
+	        return strnatcasecmp( $a['Room Space'], $b['Room Space'] );
+	    } );
+
 		self::$areas = array();
 		foreach ( self::$spaces as $space ) {
 
