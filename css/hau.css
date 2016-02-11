@@ -39,11 +39,13 @@ label{
   padding: 10px 50px;
 }
 #housing_table{
-  min-width:800px;
   min-height:500px;
 }
 #housing_table table{
   width:100%;
+}
+#housing_table h4{
+  font-size: 16px;
 }
 #loader.active{
   display:initial;
@@ -206,4 +208,20 @@ thead th{
 }
 #content .main .container{
   width: 100%;
+}
+.unit-row{
+  cursor: pointer;
+}
+.area-header-row>tr>th:nth-child(n+5),
+.unit-row>tr>td:nth-child(n+5){
+  text-align:center;
+}
+#content .unit-details td{
+  padding-bottom: 10px;
+}
+#content .unit-details h4{
+  margin: 1em 2em 0.5em;
+}
+#content .unit-details ul{
+  margin: 0 2em 1em;
 }
