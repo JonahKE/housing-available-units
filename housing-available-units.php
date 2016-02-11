@@ -596,16 +596,18 @@ class Housing_Available_Units {
 
 			self::$areas[$area_id]['totalSpaceCount']++;
 
-			$summary_room_type = preg_replace( self::GET_LAST_HSV, '', $space['Room Type'] );
+			$unit_type = preg_replace( self::GET_LAST_HSV, '', $space['Room Type'] );
 
 			// Add any weird room types (not mentioned above)
-			if ( ! isset( self::$areas[$area_id]['spacesAvailableByType'][$summary_room_type] ) ) {
-				self::$areas[$area_id]['spacesAvailableByType'][$summary_room_type] = 0;
+			if ( ! isset( self::$areas[$area_id]['spacesAvailableByType'][$unit_type] ) ) {
+				self::$areas[$area_id]['spacesAvailableByType'][$unit_type] = 0;
+			}
+
 			}
 
 			// counts
-			if ( ! isset( self::$space_types_counts[$summary_room_type] ) ) {
-				self::$space_types_counts[$summary_room_type] = 0;
+			if ( ! isset( self::$space_types_counts[$unit_type] ) ) {
+				self::$space_types_counts[$unit_type] = 0;
 			}
 
 			if ( ! isset( self::$gender_counts[$space['Gender']] ) ) {
@@ -635,6 +637,7 @@ class Housing_Available_Units {
 					'gender'              => $space['Gender'],
 					'specialty'           => $specialty,
 					'webImageLocation'    => $space['Web Image Location'],
+					'unitType'        => $unit_type,
 				);
 
 			}
@@ -652,7 +655,6 @@ class Housing_Available_Units {
 				self::$areas[$area_id]['roomCount']++;
 				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room] = array(
 					'roomID'              => $room,
-					'summaryRoomType'     => $summary_room_type,
 					'roomType'            => $space['Room Type'],
 					'roomSize'            => $room_size,
 					'room'                => preg_replace( self::GET_FIRST_HSV, '', $room),
@@ -704,8 +706,8 @@ class Housing_Available_Units {
 							$room['roomAvailableSpaces']--;
 
 						} else {
-							$area['spacesAvailableByType'][$room['summaryRoomType']]++;
-							self::$space_types_counts[$room['summaryRoomType']]++;
+							$area['spacesAvailableByType'][$unit['unitType']]++;
+							self::$space_types_counts[$unit['unitType']]++;
 							self::$gender_counts[$unit['gender']]++;
 							self::$room_size_counts[$room['roomSize']]++;
 							if ( ! empty( $unit['specialty'] ) && trim( $unit['specialty'] ) ) {
