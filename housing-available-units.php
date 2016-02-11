@@ -603,8 +603,6 @@ class Housing_Available_Units {
 				self::$areas[$area_id]['spacesAvailableByType'][$unit_type] = 0;
 			}
 
-			}
-
 			// counts
 			if ( ! isset( self::$space_types_counts[$unit_type] ) ) {
 				self::$space_types_counts[$unit_type] = 0;
