@@ -1,6 +1,10 @@
-label{
+#housing_table label{
   font-weight: normal;
   font-size: 0.9em;
+  line-height: 1em
+}
+#housing_table .buildings-list label{
+  font-size: 0.8em;
 }
 .apply-data {
   float: right;
@@ -181,6 +185,17 @@ thead th{
 .buildings-list{
   margin-bottom: 10px;
 }
+.buildings-list h3 a{
+  font-size: 0.9em;
+}
+.buildings-list .glyphicon:before{
+  vertical-align: middle;
+  font-size: 0.8em;
+  margin-right: 0.3em;
+}
+.buildings-list h3{
+
+}
 .buildings-list ul label{
   margin-left:18px;
 }
@@ -198,8 +213,9 @@ thead th{
   float: left;
   margin: 0 10px 0 0;
   padding: 0;
-  width: 200px;
+  width: 170px;
   left: 0;
+  line-height: 1.2em;
 }
 #content .main{
   width: 1200px;
@@ -217,7 +233,14 @@ thead th{
   text-align:center;
 }
 #content .unit-details td{
-  padding-bottom: 10px;
+  padding: 0 0 1em;
+}
+#content .unit-details-inner{
+  width: 100%;
+  height: 100%;
+  background-color: #E5E5E5;
+  margin-bottom: 10px;
+  overflow: auto;
 }
 #content .unit-details h4{
   margin: 1em 2em 0.5em;

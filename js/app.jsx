@@ -284,6 +284,7 @@ var AreaTable = React.createClass({
 
         return { 
             specialtyOn : false,
+            buildingsFilterExpanded: false,
             buildingsFilter: buildingsList
         };
     },
@@ -292,9 +293,9 @@ var AreaTable = React.createClass({
            specialtyOn : ( JSON.stringify( this.props.filters.housingCodes ) !== JSON.stringify( nextProps.filters.housingCodes ) )
        }); 
     },
-    showPopover: function(e){
+    toggleShowBuildingsFilter: function(e){
         e.preventDefault();
-        jQuery(e.target).popover('show');
+        this.setState({ buildingsFilterExpanded: !this.state.buildingsFilterExpanded });
     },
     filterBuildings: function( e ){
         this.setState( previousState => {
@@ -306,22 +307,23 @@ var AreaTable = React.createClass({
         return <BuildingsLine building={b} key={i} updateFilter={this.filterBuildings} checked={this.state.buildingsFilter[b]} />
     },
     tableLoaded: function(table){
-        jQuery(table)
-            .stickyTableHeaders({
-                fixedOffset: ( hau_opts.is_user_logged_in ) ? 20 : 0
-            })
-            .on('enabledStickiness.stickyTableHeaders', function(){
-                jQuery(this).addClass('headers-sticky');
-            })
-            .on('disabledStickiness.stickyTableHeaders', function(){
-                jQuery(this).removeClass('headers-sticky');
-            });                        
+        // jQuery(table)
+        //     .stickyTableHeaders({
+        //         fixedOffset: ( hau_opts.is_user_logged_in ) ? 20 : 0
+        //     })
+        //     .on('enabledStickiness.stickyTableHeaders', function(){
+        //         jQuery(this).addClass('headers-sticky');
+        //     })
+        //     .on('disabledStickiness.stickyTableHeaders', function(){
+        //         jQuery(this).removeClass('headers-sticky');
+        //     });                        
     },
     buildUnit: function(u,i,a){
         return <Unit key={u.unitID} unitData={u} filters={this.props.filters} activeBuildings={this.state.buildingsFilter} specialtyOn={this.props.specialtyOn} />;
     },
     render: function(){
-        var showSpecialty = 'none';
+        var showSpecialty = 'none',
+            maybeShowBuildingsFilter = this.state.buildingsFilterExpanded ? '' : 'none';
 
         if( this.props.specialtyOn ){
             showSpecialty = 'table-cell';
@@ -334,8 +336,8 @@ var AreaTable = React.createClass({
         return (
             <div className="bu_collapsible_section">
                 <div className="buildings-list">
-                    <h3>Buildings</h3>
-                    <ul>
+                    <h3><a href="#" onClick={this.toggleShowBuildingsFilter}><span className="glyphicon glyphicon-filter"></span>Filter Buildings</a></h3>
+                    <ul style={{display:maybeShowBuildingsFilter}}>
                         { this.props.buildings.map( this.renderBuildingsCheckboxes, this ) }
                     </ul>
                 </div>
@@ -343,8 +345,7 @@ var AreaTable = React.createClass({
                     <thead className="area-header-row">
                         <tr>
                             <th>&nbsp;</th>
-                            <th><a href="#" onClick={this.showPopover} style={{display:'none'}} data-toggle="popover" title="Filter Locations">
-                                <span className="glyphicon glyphicon-filter" aria-label="Click to Filter Locations"></span></a> Location</th>
+                            <th>Location</th>
                             <th>Type</th>
                             <th>Floor</th>
                             <th>Unit #</th>
@@ -392,12 +393,30 @@ var Unit = React.createClass({
            }); 
         }
     },
+    unitHasSpacesForFilteredSizes: function(spacesAvailableBySize){
+        var hasAvailability = false;
+
+        // console.log(hasAvailability);
+
+        Object.keys( this.props.filters.roomSizes ).map( (s,i) => {
+            if( !hasAvailability && 
+                true === this.props.filters.roomSizes[ s ] &&
+                spacesAvailableBySize[s] > 0 ){
+                
+                hasAvailability = true;
+            }
+            // console.log(s+': '+spacesAvailableBySize[s] + ' - ' + this.props.filters.roomSizes[ s ] + ' - ' + hasAvailability);
+        } );
+        
+        return hasAvailability;
+    },
     isUnitFiltered: function(){
         return (
             !this.props.filters.spaceTypes[ this.props.unitData.unitType ] ||
             !this.props.activeBuildings[ this.props.unitData.location ] ||
             !this.props.filters.housingCodes[ this.props.unitData.specialty ] ||
-            !this.props.filters.genders[ this.props.unitData.gender ]
+            !this.props.filters.genders[ this.props.unitData.gender ] ||
+            !this.unitHasSpacesForFilteredSizes( this.props.unitData.spacesAvailableBySize )
         );
     },
     render: function(){
@@ -417,7 +436,7 @@ var Unit = React.createClass({
         // should be permanantly excluded from the list
         // different from "filtered", as those can be re-shown
         if( this.state.hidden ){
-            return <tr />;
+            return <tbody />;
         }
 
         return (
@@ -450,10 +469,12 @@ var UnitDetails = React.createClass({
         return (
             <tr className='unit-details'>
                 <td colSpan='9'>
-                    <h4>All Rooms</h4>
-                    <ul>
-                        {this.props.unit.rooms.map( (r,i,a) => this.buildRooms(r,i,a) )}
-                    </ul>
+                    <div className='unit-details-inner'>
+                        <h4>All room(s) in this unit</h4>
+                        <ul>
+                            {this.props.unit.rooms.map( (r,i,a) => this.buildRooms(r,i,a) )}
+                        </ul>
+                    </div>
                 </td>
             </tr>
         );

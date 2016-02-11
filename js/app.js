@@ -400,6 +400,7 @@ var AreaTable = React.createClass({
 
         return {
             specialtyOn: false,
+            buildingsFilterExpanded: false,
             buildingsFilter: buildingsList
         };
     },
@@ -408,9 +409,9 @@ var AreaTable = React.createClass({
             specialtyOn: JSON.stringify(this.props.filters.housingCodes) !== JSON.stringify(nextProps.filters.housingCodes)
         });
     },
-    showPopover: function showPopover(e) {
+    toggleShowBuildingsFilter: function toggleShowBuildingsFilter(e) {
         e.preventDefault();
-        jQuery(e.target).popover('show');
+        this.setState({ buildingsFilterExpanded: !this.state.buildingsFilterExpanded });
     },
     filterBuildings: function filterBuildings(e) {
         this.setState(function (previousState) {
@@ -422,13 +423,16 @@ var AreaTable = React.createClass({
         return React.createElement(BuildingsLine, { building: b, key: i, updateFilter: this.filterBuildings, checked: this.state.buildingsFilter[b] });
     },
     tableLoaded: function tableLoaded(table) {
-        jQuery(table).stickyTableHeaders({
-            fixedOffset: hau_opts.is_user_logged_in ? 20 : 0
-        }).on('enabledStickiness.stickyTableHeaders', function () {
-            jQuery(this).addClass('headers-sticky');
-        }).on('disabledStickiness.stickyTableHeaders', function () {
-            jQuery(this).removeClass('headers-sticky');
-        });
+        // jQuery(table)
+        //     .stickyTableHeaders({
+        //         fixedOffset: ( hau_opts.is_user_logged_in ) ? 20 : 0
+        //     })
+        //     .on('enabledStickiness.stickyTableHeaders', function(){
+        //         jQuery(this).addClass('headers-sticky');
+        //     })
+        //     .on('disabledStickiness.stickyTableHeaders', function(){
+        //         jQuery(this).removeClass('headers-sticky');
+        //     });                       
     },
     buildUnit: function buildUnit(u, i, a) {
         return React.createElement(Unit, { key: u.unitID, unitData: u, filters: this.props.filters, activeBuildings: this.state.buildingsFilter, specialtyOn: this.props.specialtyOn });
@@ -436,7 +440,8 @@ var AreaTable = React.createClass({
     render: function render() {
         var _this4 = this;
 
-        var showSpecialty = 'none';
+        var showSpecialty = 'none',
+            maybeShowBuildingsFilter = this.state.buildingsFilterExpanded ? '' : 'none';
 
         if (this.props.specialtyOn) {
             showSpecialty = 'table-cell';
@@ -455,11 +460,16 @@ var AreaTable = React.createClass({
                 React.createElement(
                     'h3',
                     null,
-                    'Buildings'
+                    React.createElement(
+                        'a',
+                        { href: '#', onClick: this.toggleShowBuildingsFilter },
+                        React.createElement('span', { className: 'glyphicon glyphicon-filter' }),
+                        'Filter Buildings'
+                    )
                 ),
                 React.createElement(
                     'ul',
-                    null,
+                    { style: { display: maybeShowBuildingsFilter } },
                     this.props.buildings.map(this.renderBuildingsCheckboxes, this)
                 )
             ),
@@ -480,12 +490,7 @@ var AreaTable = React.createClass({
                         React.createElement(
                             'th',
                             null,
-                            React.createElement(
-                                'a',
-                                { href: '#', onClick: this.showPopover, style: { display: 'none' }, 'data-toggle': 'popover', title: 'Filter Locations' },
-                                React.createElement('span', { className: 'glyphicon glyphicon-filter', 'aria-label': 'Click to Filter Locations' })
-                            ),
-                            ' Location'
+                            'Location'
                         ),
                         React.createElement(
                             'th',
@@ -565,8 +570,25 @@ var Unit = React.createClass({
             });
         }
     },
+    unitHasSpacesForFilteredSizes: function unitHasSpacesForFilteredSizes(spacesAvailableBySize) {
+        var _this5 = this;
+
+        var hasAvailability = false;
+
+        // console.log(hasAvailability);
+
+        Object.keys(this.props.filters.roomSizes).map(function (s, i) {
+            if (!hasAvailability && true === _this5.props.filters.roomSizes[s] && spacesAvailableBySize[s] > 0) {
+
+                hasAvailability = true;
+            }
+            // console.log(s+': '+spacesAvailableBySize[s] + ' - ' + this.props.filters.roomSizes[ s ] + ' - ' + hasAvailability);
+        });
+
+        return hasAvailability;
+    },
     isUnitFiltered: function isUnitFiltered() {
-        return !this.props.filters.spaceTypes[this.props.unitData.unitType] || !this.props.activeBuildings[this.props.unitData.location] || !this.props.filters.housingCodes[this.props.unitData.specialty] || !this.props.filters.genders[this.props.unitData.gender];
+        return !this.props.filters.spaceTypes[this.props.unitData.unitType] || !this.props.activeBuildings[this.props.unitData.location] || !this.props.filters.housingCodes[this.props.unitData.specialty] || !this.props.filters.genders[this.props.unitData.gender] || !this.unitHasSpacesForFilteredSizes(this.props.unitData.spacesAvailableBySize);
     },
     render: function render() {
         var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '',
@@ -589,7 +611,7 @@ var Unit = React.createClass({
         // should be permanantly excluded from the list
         // different from "filtered", as those can be re-shown
         if (this.state.hidden) {
-            return React.createElement('tr', null);
+            return React.createElement('tbody', null);
         }
 
         return React.createElement(
@@ -658,7 +680,7 @@ var UnitDetails = React.createClass({
         return React.createElement(Room, { data: r, unit: this.props.unit, key: r.roomID });
     },
     render: function render() {
-        var _this5 = this;
+        var _this6 = this;
 
         if (!this.props.expanded) {
             return React.createElement('tr', null);
@@ -670,16 +692,20 @@ var UnitDetails = React.createClass({
                 'td',
                 { colSpan: '9' },
                 React.createElement(
-                    'h4',
-                    null,
-                    'All Rooms'
-                ),
-                React.createElement(
-                    'ul',
-                    null,
-                    this.props.unit.rooms.map(function (r, i, a) {
-                        return _this5.buildRooms(r, i, a);
-                    })
+                    'div',
+                    { className: 'unit-details-inner' },
+                    React.createElement(
+                        'h4',
+                        null,
+                        'All room(s) in this unit'
+                    ),
+                    React.createElement(
+                        'ul',
+                        null,
+                        this.props.unit.rooms.map(function (r, i, a) {
+                            return _this6.buildRooms(r, i, a);
+                        })
+                    )
                 )
             )
         );
