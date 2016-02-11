@@ -628,21 +628,21 @@ class Housing_Available_Units {
 				}
 
 				self::$areas[$area_id]['units'][$unit_id] = array(
-					'unitID'              => $unit_id,
-					'location'            => $space['Room Location'],
-					'floor'               => preg_replace( self::GET_FIRST_HSV, '', $space['Room Location Section'] ),
-					'suite'               => str_replace( $space['Room Location Section'], '', $unit_id ),
-					'unitTotalSpaces'     => 0,
-					'unitAvailableSpaces' => 0,
-					'gender'              => $space['Gender'],
-					'specialty'           => $specialty,
-					'webImageLocation'    => $space['Web Image Location'],
+					'unitID'          => $unit_id,
+					'location'        => $space['Room Location'],
+					'floor'           => preg_replace( self::GET_FIRST_HSV, '', $space['Room Location Section'] ),
+					'suite'           => str_replace( $space['Room Location Section'], '', $unit_id ),
+					'totalSpaces'     => 0,
+					'availableSpaces' => 0,
+					'gender'          => $space['Gender'],
+					'specialty'       => $specialty,
+					'floorplan'       => $space['Web Image Location'],
 					'unitType'        => $unit_type,
 				);
 
 			}
 
-			self::$areas[$area_id]['units'][$unit_id]['unitTotalSpaces']++;
+			self::$areas[$area_id]['units'][$unit_id]['totalSpaces']++;
 
 			// rooms
 			$room = $space['Room Base'];
@@ -654,13 +654,13 @@ class Housing_Available_Units {
 
 				self::$areas[$area_id]['roomCount']++;
 				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room] = array(
-					'roomID'              => $room,
 					'roomType'            => $space['Room Type'],
-					'roomSize'            => $room_size,
-					'room'                => preg_replace( self::GET_FIRST_HSV, '', $room),
-					'roomTotalSpaces'     => 0,
-					'roomAvailableSpaces' => 0,
-					'spaceIDs'            => array( $space['Space ID'] ),
+					'roomID'          => $room,
+					'roomSize'        => $room_size,
+					'room'            => preg_replace( self::GET_FIRST_HSV, '', $room),
+					'totalSpaces'     => 0,
+					'availableSpaces' => 0,
+					'spaceIDs'        => array( $space['Space ID'] ),
 				);
 
 				if ( ! isset( self::$room_size_counts[$room_size] ) ) {
@@ -668,7 +668,7 @@ class Housing_Available_Units {
 				}
 			}
 
-			self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['roomTotalSpaces']++;
+			self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['totalSpaces']++;
 
 		}
 		return true;
@@ -695,15 +695,15 @@ class Housing_Available_Units {
 			}
 
 			foreach ( $area['units'] as &$unit ) {
-				$unit['unitAvailableSpaces'] = $unit['unitTotalSpaces'];
+				$unit['availableSpaces'] = $unit['totalSpaces'];
 				foreach ( $unit['rooms'] as &$room ) {
-					$room['roomAvailableSpaces'] = $room['roomTotalSpaces'];
+					$room['availableSpaces'] = $room['totalSpaces'];
 					foreach( $room['spaceIDs'] as $space_id ) {
 						if ( in_array( $space_id, self::$bookings ) ) {
 							// space is booked, update totals
 							$area['availableSpaceCount']--;
-							$unit['unitAvailableSpaces']--;
-							$room['roomAvailableSpaces']--;
+							$unit['availableSpaces']--;
+							$room['availableSpaces']--;
 
 						} else {
 							$area['spacesAvailableByType'][$unit['unitType']]++;
