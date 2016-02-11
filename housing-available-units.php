@@ -638,8 +638,19 @@ class Housing_Available_Units {
 					'specialty'       => $specialty,
 					'floorplan'       => $space['Web Image Location'],
 					'unitType'        => $unit_type,
+					'spacesAvailableBySize' => array(
+						'Single' => 0,
+						'Double' => 0,
+						'Triple' => 0,
+						'Quad'   => 0,
+					),
 				);
 
+			}
+
+			// Add any weird room sizes (not mentioned above)
+			if ( ! isset( self::$areas[$area_id]['units'][$unit_id]['spacesAvailableBySize'][$unit_type] ) ) {
+				self::$areas[$area_id]['spacesAvailableBySize'][$unit_type] = 0;
 			}
 
 			self::$areas[$area_id]['units'][$unit_id]['totalSpaces']++;
@@ -688,13 +699,12 @@ class Housing_Available_Units {
 
 		foreach ( self::$areas as &$area ) {
 			$area['availableSpaceCount'] = $area['totalSpaceCount'];
-
-			foreach ( $area['spacesAvailableByType'] as &$count ) {
-				$count = 0;
-			}
+			array_map( '__return_zero', $area['spacesAvailableByType'] );
 
 			foreach ( $area['units'] as &$unit ) {
 				$unit['availableSpaces'] = $unit['totalSpaces'];
+				array_map( '__return_zero', $unit['spacesAvailableBySize'] );
+
 				foreach ( $unit['rooms'] as &$room ) {
 					$room['availableSpaces'] = $room['totalSpaces'];
 					foreach( $room['spaceIDs'] as $space_id ) {
@@ -706,6 +716,7 @@ class Housing_Available_Units {
 
 						} else {
 							$area['spacesAvailableByType'][$unit['unitType']]++;
+							$unit['spacesAvailableBySize'][$room['roomSize']]++;
 							self::$space_types_counts[$unit['unitType']]++;
 							self::$gender_counts[$unit['gender']]++;
 							self::$room_size_counts[$room['roomSize']]++;
