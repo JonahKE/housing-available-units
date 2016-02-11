@@ -654,7 +654,6 @@ class Housing_Available_Units {
 
 				self::$areas[$area_id]['roomCount']++;
 				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room] = array(
-					'roomType'            => $space['Room Type'],
 					'roomID'          => $room,
 					'roomSize'        => $room_size,
 					'room'            => preg_replace( self::GET_FIRST_HSV, '', $room),
