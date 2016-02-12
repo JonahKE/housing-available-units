@@ -70,7 +70,7 @@ var FilterBar = React.createClass({
         switch ( listName ){
             case 'housingCodes':
                 if( '' == currentItem ){
-                    label = 'Show standard rooms';
+                    label = 'Include units without specialty designation';
                     displayCount = '';
                 }
                 break;
@@ -249,8 +249,9 @@ var Area = React.createClass({
             aptText                 = this.maybePlural( g.spacesAvailableByType.Apt, 'Apt' ),
             suiteText               = this.maybePlural( g.spacesAvailableByType.Suite, 'Suite' ),
             semiText                = this.maybePlural( g.spacesAvailableByType.Semi, 'Semi' ),
+            studioText              = this.maybePlural( g.spacesAvailableByType.Studio, 'Studio' ),
             dormText                = this.maybePlural( g.spacesAvailableByType.Dorm, 'Dorm' ),
-            unitsText               = this.maybePlural( this.props.group.availableSpaceCount, 'unit' ),
+            // unitsText               = this.maybePlural( this.props.group.availableSpaceCount, 'unit' ),
             arrow_icon              = 'glyphicon ' + ( this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right' ),
             roomSummaryDisplay      = ( this.props.filtersActive ) ? 'none' : 'initial',
             filtersActiveDisplay    = ( this.props.filtersActive ) ? 'initial' : 'none';
@@ -260,10 +261,12 @@ var Area = React.createClass({
                 <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
                     <span className={arrow_icon} aria-hidden="true"></span> &nbsp;
                     {this.props.name} &nbsp;
-                    <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>{unitsText} available: &nbsp;
+                    <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>
+                        Available: &nbsp;
                         {aptText} | &nbsp;
                         {suiteText} | &nbsp;
                         {semiText} | &nbsp;
+                        {studioText} | &nbsp;
                         {dormText}
                     </span>
                     <span className="filters-active" style={{ display: filtersActiveDisplay }}>Filter(s) active</span>
