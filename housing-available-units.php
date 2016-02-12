@@ -697,11 +697,11 @@ class Housing_Available_Units {
 
 		foreach ( self::$areas as &$area ) {
 			$area['availableSpaceCount'] = $area['totalSpaceCount'];
-			array_map( '__return_zero', $area['spacesAvailableByType'] );
+			$area['spacesAvailableByType'] = array_map( '__return_zero', $area['spacesAvailableByType'] );
 
 			foreach ( $area['units'] as &$unit ) {
 				$unit['availableSpaces'] = $unit['totalSpaces'];
-				array_map( '__return_zero', $unit['spacesAvailableBySize'] );
+				$unit['spacesAvailableBySize'] = array_map( '__return_zero', $unit['spacesAvailableBySize'] );
 
 				foreach ( $unit['rooms'] as &$room ) {
 					$room['availableSpaces'] = $room['totalSpaces'];
