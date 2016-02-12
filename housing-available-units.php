@@ -598,7 +598,7 @@ class Housing_Available_Units {
 
 			$unit_type = preg_replace( self::GET_LAST_HSV, '', $space['Room Type'] );
 
-			// Add any weird room types (not mentioned above)
+			// Add any previously-unkonwn unit types (not mentioned above)
 			if ( ! isset( self::$areas[$area_id]['spacesAvailableByType'][$unit_type] ) ) {
 				self::$areas[$area_id]['spacesAvailableByType'][$unit_type] = 0;
 			}
