@@ -646,11 +646,6 @@ class Housing_Available_Units {
 
 			}
 
-			// Add any weird room sizes (not mentioned above)
-			if ( ! isset( self::$areas[$area_id]['units'][$unit_id]['spacesAvailableBySize'][$unit_type] ) ) {
-				self::$areas[$area_id]['spacesAvailableBySize'][$unit_type] = 0;
-			}
-
 			self::$areas[$area_id]['units'][$unit_id]['totalSpaces']++;
 
 			// rooms
@@ -673,6 +668,11 @@ class Housing_Available_Units {
 
 				if ( ! isset( self::$room_size_counts[$room_size] ) ) {
 					self::$room_size_counts[$room_size] = 0;
+				}
+
+				// Add any previously-unknown room sizes (not mentioned above)
+				if ( ! isset( self::$areas[$area_id]['units'][$unit_id]['spacesAvailableBySize'][$room_size] ) ) {
+					self::$areas[$area_id]['units'][$unit_id]['spacesAvailableBySize'][$room_size] = 0;
 				}
 			}
 
