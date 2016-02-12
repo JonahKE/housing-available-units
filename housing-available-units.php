@@ -434,6 +434,7 @@ class Housing_Available_Units {
 		} else {
 
 			self::parse();
+			self::sort();
 			self::process();
 			self::cleanup();
 		}
@@ -557,6 +558,52 @@ class Housing_Available_Units {
 	}
 
 	/**
+	 * Spaces Sort Order:
+	 * - Room Location Area
+	 * - Room Location Summary
+	 * - Room Location
+	 * - Room Space Summary
+	 * - Room Space
+	 *
+	 * @param  array $a left side comparison
+	 * @param  array $b right side comparison
+	 * @return -1,0,1   based on comparison
+	 */
+	static function spaces_sort_func( $a, $b ) {
+		$rla_cmp = strcasecmp( $a['Room Location Area'], $b['Room Location Area'] );
+		if ( $rla_cmp != 0 ) return $rla_cmp;
+
+		$rls_cmp = strcasecmp( $a['Room Location Summary'], $b['Room Location Summary'] );
+		if ( $rls_cmp != 0 ) return $rls_cmp;
+
+		$ra_cmp = strnatcasecmp( $a['Room Location'], $b['Room Location'] );
+		if ( $ra_cmp != 0 ) return $ra_cmp;
+
+		$rss_cmp = strcasecmp( $a['Room Space Summary'], $b['Room Space Summary'] );
+		if ( $rss_cmp != 0 ) return $rss_cmp;
+
+		$rs_cmp = strnatcasecmp( $a['Room Space'], $b['Room Space'] );
+		return $rs_cmp;
+	}
+
+	/**
+	 * Sort the spaces
+	 * @todo Do this after process() for less sorting calculations
+	 * @return null
+	 */
+	static function sort() {
+
+		// Street addresses special
+		// Gets rid of leading building numbers to do more meaningful comparisons of street names
+		foreach ( self::$spaces as &$space ) {
+			$space['Room Space Summary'] = preg_replace( '!^[0-9\s\-]*!', '', $space['Room Space'] );
+			$space['Room Location Summary'] = preg_replace( '!^[0-9\s\-]*!', '', $space['Room Location'] );
+		}
+
+		usort( self::$spaces, array( self, 'spaces_sort_func' ) );
+	 }
+
+	/**
 	 * Process the areas data into structured React-consumable data
 	 * Does not apply any bookings. That happens in `apply_bookings()`.
 	 * @return null
@@ -566,11 +613,6 @@ class Housing_Available_Units {
 		if ( self::$debug && isset( $_GET['hau_limit'] ) ) {
 			array_splice( self::$spaces, intval( $_GET['hau_limit'] ) );
 		}
-
-		// Sort spaces using natural order case-insensitive comparisons
-		usort( self::$spaces, function( $a, $b ) {
-	        return strnatcasecmp( $a['Room Space'], $b['Room Space'] );
-	    } );
 
 		self::$areas = array();
 		foreach ( self::$spaces as $space ) {
