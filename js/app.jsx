@@ -10,35 +10,7 @@ var DisplayMixin = {
     }
 };
 
-var RoomSizeMixin = {
-    roomSizeMapToInt: function( roomSize ){
-        switch ( roomSize ){
-            case 'Single':
-                return 1;
-            case 'Double':
-                return 2;
-            case 'Triple':
-                return 3;
-            case 'Quad':
-                return 4;
-        }
-    },
-    roomSizeMapFromInt: function( i ){
-        switch ( i ){
-            case 1:
-                return 'Single';
-            case 2:
-                return 'Double';
-            case 3:
-                return 'Triple';
-            case 4:
-                return 'Quad';
-        }
-    }
-};
-
 var FilterBar = React.createClass({ 
-    mixins: [RoomSizeMixin],
     getInitialState: function() {
         return { 
             visible : false, 
@@ -143,10 +115,9 @@ var CurrentAsOf = React.createClass({
 });
 
 var Housing = React.createClass({
-    mixins: [DisplayMixin,RoomSizeMixin],
+    mixins: [DisplayMixin],
     getInitialState: function() {
         var _state = { 
-            // title               : hau_opts._bootstrap.metaData.name, 
             areas               : _bootstrap.areas, 
             units               : _bootstrap.units, 
             roomCount           : _bootstrap.totalRoomCount, 
@@ -155,6 +126,7 @@ var Housing = React.createClass({
             dataCreateTimestamp : _bootstrap.createTime,
             filtersActive       : false,
             specialtyOn         : false,
+            allExpanded         : false,
             meta : {
                 'genders'       : _bootstrap.gender,
                 'housingCodes'  : _bootstrap.housingCodes,
@@ -188,7 +160,6 @@ var Housing = React.createClass({
         jQuery.getJSON( hau_opts.units_json, function(r){
             var now = new Date();
             if ( r.hasOwnProperty( 'areas' ) ){
-                // this.setState({ isDataPending: true, dataPending: r, lastDownloadTime: now.toISOString() })
                 this.setState({ 
                     areas: r.areas, 
                     lastDownloadTime: new Date(), 
@@ -222,14 +193,22 @@ var Housing = React.createClass({
                 });
         }
     },
+    toggleAllExpanded: function(e){
+        e.preventDefault();
+        this.setState({ allExpanded: !this.state.allExpanded });
+    },
     renderAreas: function(s,i,a) {
-        return <Area group={s} units={s.units} key={s.areaID} name={s.areaID} filters={this.state.filters} filtersActive={this.state.filtersActive} specialtyOn={this.state.specialtyOn} />;
+        return <Area group={s} units={s.units} key={s.areaID} name={s.areaID} filters={this.state.filters} filtersActive={this.state.filtersActive} specialtyOn={this.state.specialtyOn} allExpanded={this.state.allExpanded} />;
     },
     render: function(){
+        var expandCollapseAllText = this.state.allExpanded ? 'Collapse' : 'Expand';
         return (
-            <div>
+            <div className="housing-main">
                 <CurrentAsOf lastUpdated={this.state.dataCreateTimestamp} />
                 <FilterBar filters={this.state.filters} updateFilters={this.updateFilters} metaInfo={this.state.meta} />
+                <div className="expand-collapse-all">
+                    <a href="#" onClick={this.toggleAllExpanded}>{expandCollapseAllText} all sections</a>
+                </div>
                 { this.state.areas.map( (s,i,a) => this.renderAreas(s,i,a) ) }
             </div>
         );
@@ -250,24 +229,29 @@ var Area = React.createClass({
             buildingsFilter: buildingsList
         };
     },
+    componentWillReceiveProps: function(nextProps){
+        if( this.props.allExpanded !== nextProps.allExpanded ){
+            this.setState({
+                expanded : nextProps.allExpanded
+            }); 
+        }      
+    },
     toggleShow: function(){
         this.setState({ expanded: !this.state.expanded });
     },
     render: function() {
-        // console.log(this.state.buildingsFilter);
         var g                       = this.props.group,
             aptText                 = this.maybePlural( g.spacesAvailableByType.Apt, 'Apt' ),
             suiteText               = this.maybePlural( g.spacesAvailableByType.Suite, 'Suite' ),
             semiText                = this.maybePlural( g.spacesAvailableByType.Semi, 'Semi' ),
             studioText              = this.maybePlural( g.spacesAvailableByType.Studio, 'Studio' ),
             dormText                = this.maybePlural( g.spacesAvailableByType.Dorm, 'Dorm' ),
-            // unitsText               = this.maybePlural( this.props.group.availableSpaceCount, 'unit' ),
             arrow_icon              = 'glyphicon ' + ( this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right' ),
             roomSummaryDisplay      = ( this.props.filtersActive ) ? 'none' : 'initial',
             filtersActiveDisplay    = ( this.props.filtersActive ) ? 'initial' : 'none';
 
         return (
-            <div className="bu_collapsible_container" style={{ overflow : 'hidden' }}>
+            <div className="housing_area bu_collapsible_container" style={{ overflow : 'hidden' }}>
                 <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
                     <span className={arrow_icon} aria-hidden="true"></span> &nbsp;
                     {this.props.name} &nbsp;
@@ -313,23 +297,10 @@ var AreaTable = React.createClass({
     filterBuildings: function( e ){
         this.setState( previousState => {
             previousState.buildingsFilter[ e.target.name ] = e.target.checked;
-            // console.log(previousState);
         });
     },
     renderBuildingsCheckboxes: function(b,i,a){
         return <BuildingsLine building={b} key={i} updateFilter={this.filterBuildings} checked={this.state.buildingsFilter[b]} />
-    },
-    tableLoaded: function(table){
-        // jQuery(table)
-        //     .stickyTableHeaders({
-        //         fixedOffset: ( hau_opts.is_user_logged_in ) ? 20 : 0
-        //     })
-        //     .on('enabledStickiness.stickyTableHeaders', function(){
-        //         jQuery(this).addClass('headers-sticky');
-        //     })
-        //     .on('disabledStickiness.stickyTableHeaders', function(){
-        //         jQuery(this).removeClass('headers-sticky');
-        //     });                        
     },
     buildUnit: function(u,i,a){
         return <Unit key={u.unitID} unitData={u} filters={this.props.filters} activeBuildings={this.state.buildingsFilter} specialtyOn={this.props.specialtyOn} />;
@@ -354,7 +325,7 @@ var AreaTable = React.createClass({
                         { this.props.buildings.map( this.renderBuildingsCheckboxes, this ) }
                     </ul>
                 </div>
-                <table ref={this.tableLoaded}>
+                <table>
                     <thead className="area-header-row">
                         <tr>
                             <th>&nbsp;</th>
@@ -380,7 +351,7 @@ var Unit = React.createClass({
         return { 
             hidden          : ( !this.props.unitData.availableSpaces ),
             recentlyTaken   : false,
-            isFiltered      : false,
+            isFiltered      : this.isUnitFiltered(),
             detailsExpanded : false
         };
     },
@@ -388,18 +359,13 @@ var Unit = React.createClass({
         if( jQuery(e.target).parent().is('a') ){
             return;
         }
-
-        this.setState( previousState => {
-            if( previousState.detailsExpanded ){
-                // previousState.maxHeight = '300px';
-                previousState.detailsExpanded = false;
-            } else {
-                // previousState.maxHeight = 'none';
-                previousState.detailsExpanded = true;
-            }
-        });
+        this.setState({ detailsExpanded: !this.state.detailsExpanded });
     },
     componentWillReceiveProps: function(nextProps){
+        this.setState({
+            isFiltered : this.isUnitFiltered()
+        });
+
         if( this.props.unitData.availableSpaces > 0 && !nextProps.unitData.availableSpaces ){
            this.setState({
                recentlyTaken : true
@@ -408,9 +374,6 @@ var Unit = React.createClass({
     },
     unitHasSpacesForFilteredSizes: function(spacesAvailableBySize){
         var hasAvailability = false;
-
-        // console.log(hasAvailability);
-
         Object.keys( this.props.filters.roomSizes ).map( (s,i) => {
             if( !hasAvailability && 
                 true === this.props.filters.roomSizes[ s ] &&
@@ -418,7 +381,6 @@ var Unit = React.createClass({
                 
                 hasAvailability = true;
             }
-            // console.log(s+': '+spacesAvailableBySize[s] + ' - ' + this.props.filters.roomSizes[ s ] + ' - ' + hasAvailability);
         } );
         
         return hasAvailability;
@@ -434,7 +396,7 @@ var Unit = React.createClass({
     },
     render: function(){
         var recentlyTakenClass = this.state.recentlyTaken ? ' booked ' : '',
-            maybeVisible = ( this.isUnitFiltered() ) ? 'none' : '',
+            maybeVisible = this.state.isFiltered ? 'none' : '',
             classN = 'unit-row ' + ( this.state.detailsExpanded ? 'expanded' : 'collapsed' ),
             expandIcon = 'glyphicon ' + ( this.state.detailsExpanded ? 'glyphicon-minus' : 'glyphicon-plus' ),
             floorplan = ( 0 !== this.props.unitData.floorplan.length ) ? <a href={this.props.unitData.floorplan} target="_blank"><span className="glyphicon glyphicon-picture"></span></a> : '',
@@ -495,13 +457,6 @@ var UnitDetails = React.createClass({
 });
 
 var Room = React.createClass({
-    mixins: [RoomSizeMixin],
-    isRoomFiltered: function(){
-        return false;
-        return (
-            !this.props.filters.roomSizes[ this.roomSizeMapFromInt( this.props.data.totalSpaces ) ]
-        );
-    },
     render: function(){
         var classN = ( 0 == this.props.data.availableSpaces ) ? ' booked ' : '';
 
