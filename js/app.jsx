@@ -128,7 +128,16 @@ var BuildingsLine = React.createClass({
 var CurrentAsOf = React.createClass({ 
     render: function(){
         return (
-                <div><span className="last-updated">Last updated <span className="time" data-timestamp={this.props.lastUpdated}>{this.props.lastUpdated}</span></span></div>
+                <div className='last-updated-container'>
+                    <div className='loader'>
+                        <div className="spinner">
+                          <div className="double-bounce1"></div>
+                          <div className="double-bounce2"></div>
+                        </div>
+                        <p>Updates automatically.<br />No need to refresh!</p>
+                    </div>
+                    <span className="last-updated">Last updated <span className="time" data-timestamp={this.props.lastUpdated}>{this.props.lastUpdated}</span></span>
+                </div>
             );
     }
 });
@@ -193,8 +202,9 @@ var Housing = React.createClass({
                 });
             }
             document.getElementById( 'loader' ).className = '';
+        }.bind(this)).always(function(){
             setTimeout( this.updateData, updateInterval * 1000 );
-        }.bind(this));
+        });
     },
     updateFilters: function( e ) {
         var filterGroup = e.target.name,

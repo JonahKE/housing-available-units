@@ -201,7 +201,24 @@ var CurrentAsOf = React.createClass({
     render: function render() {
         return React.createElement(
             'div',
-            null,
+            { className: 'last-updated-container' },
+            React.createElement(
+                'div',
+                { className: 'loader' },
+                React.createElement(
+                    'div',
+                    { className: 'spinner' },
+                    React.createElement('div', { className: 'double-bounce1' }),
+                    React.createElement('div', { className: 'double-bounce2' })
+                ),
+                React.createElement(
+                    'p',
+                    null,
+                    'Updates automatically.',
+                    React.createElement('br', null),
+                    'No need to refresh!'
+                )
+            ),
             React.createElement(
                 'span',
                 { className: 'last-updated' },
@@ -284,8 +301,9 @@ var Housing = React.createClass({
                 });
             }
             document.getElementById('loader').className = '';
+        }).bind(this)).always(function () {
             setTimeout(this.updateData, updateInterval * 1000);
-        }).bind(this));
+        });
     },
     updateFilters: function updateFilters(e) {
         var _this2 = this;
