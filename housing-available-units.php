@@ -72,8 +72,17 @@ class Housing_Available_Units {
 	// counts
 	public static $space_types_counts   = array();
 	public static $housing_codes_counts = array();
-	public static $gender_counts        = array();
-	public static $room_size_counts     = array();
+	public static $gender_counts        = array(
+		'Male'   => 0,
+		'Female' => 0,
+		'CoEd'   => 0,
+	);
+	public static $room_size_counts     = array(
+		'Single' => 0,
+		'Double' => 0,
+		'Triple' => 0,
+		'Quad'   => 0,
+	);
 
 	// import
 	private static $spaces        = array();
@@ -444,9 +453,10 @@ class Housing_Available_Units {
 		} else {
 
 			self::parse();
-			self::sort();
+			self::pre_sort();
 			self::process();
 			self::cleanup();
+			self::sort();
 		}
 
 		self::apply_bookings();
@@ -597,11 +607,11 @@ class Housing_Available_Units {
 	}
 
 	/**
-	 * Sort the spaces
+	 * Presort the spaces
 	 * @todo Do this after process() for less sorting calculations
 	 * @return null
 	 */
-	static function sort() {
+	static function pre_sort() {
 
 		// Street addresses special
 		// Gets rid of leading building numbers to do more meaningful comparisons of street names
@@ -611,6 +621,15 @@ class Housing_Available_Units {
 		}
 
 		usort( self::$spaces, array( self, 'spaces_sort_func' ) );
+	 }
+
+	 /**
+	  * Sort the counts
+	  * @return null
+	  */
+	 static function sort() {
+	 		ksort( self::$housing_codes_counts );
+	 		ksort( self::$space_types_counts );
 	 }
 
 	/**
