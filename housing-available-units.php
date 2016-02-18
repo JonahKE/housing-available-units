@@ -173,10 +173,18 @@ class Housing_Available_Units {
 	}
 
 	/**
-	 * On plugin deactivate, remove sync cron jobs
+	 * On plugin deactivate, clear sync cron jobs
 	 * @return null
 	 */
 	static function deactivate() {
+		self::clear_sync();
+	}
+
+	/**
+	 * Clear previous sync jobs
+	 * @return null
+	 */
+	static function clear_sync() {
 		wp_clear_scheduled_hook( self::PREFIX . self::SPACES_SYNC_NAME );
 		wp_clear_scheduled_hook( self::PREFIX . self::BOOKINGS_SYNC_NAME );
 	}
@@ -186,6 +194,8 @@ class Housing_Available_Units {
 	 * @return null
 	 */
 	static function setup_sync() {
+		self::clear_sync();
+
 		if ( ! wp_next_scheduled( self::PREFIX . self::SPACES_SYNC_NAME ) ) {
 			wp_schedule_event( strtotime( self::SPACES_SYNC_TIME ), self::SPACES_SYNC_FREQ, self::PREFIX . self::SPACES_SYNC_NAME );
 		}
