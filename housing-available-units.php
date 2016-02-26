@@ -51,7 +51,7 @@ class Housing_Available_Units {
 	const SPACES_SYNC_TIME = '3 am';
 	const SPACES_SYNC_FREQ = 'daily';
 	const BOOKINGS_SYNC_NAME = 'sync_bookings';
-	const BOOKINGS_SYNC_FREQ = 'quarterhour';
+	const BOOKINGS_SYNC_FREQ = 'per5minutes';
 	const BOOKINGS_SAMPLE_SYNC_FREQ = 'minutely';
 
 	// regex
@@ -220,7 +220,7 @@ class Housing_Available_Units {
 
 	/**
 	 * Setup cron
-	 * - Adds quarterhour recurrence type
+	 * - Adds per5minutes recurrence type
 	 * - Adds hooks to fire when sync happens
 	 * @return null
 	 */
@@ -236,9 +236,9 @@ class Housing_Available_Units {
 	 * @return array            modified
 	 */
 	static function add_custom_cron_schedules( $schedules ) {
-		$schedules['quarterhour'] = array(
+		$schedules['per5minutes'] = array(
 			'interval' => 900,
-			'display' => __( 'Every Quarter Hour (15 minutes)' )
+			'display' => __( 'Every 5 minutes' )
 		);
 		$schedules['minutely'] = array(
 			'interval' => 60,
