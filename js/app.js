@@ -517,6 +517,11 @@ var AreaTable = React.createClass({
                         ),
                         React.createElement(
                             'th',
+                            null,
+                            'Meal Plan'
+                        ),
+                        React.createElement(
+                            'th',
                             { style: { display: showSpecialty } },
                             'Specialty'
                         ),
@@ -584,6 +589,7 @@ var Unit = React.createClass({
             maybeVisible = this.state.isFiltered ? 'none' : '',
             classN = 'unit-row ' + (this.state.detailsExpanded ? 'expanded' : 'collapsed'),
             expandIcon = 'glyphicon ' + (this.state.detailsExpanded ? 'glyphicon-minus' : 'glyphicon-plus'),
+            mealplan = this.props.unitData.mealplan ? React.createElement('span', { className: 'glyphicon glyphicon-check' }) : '',
             floorplan = 0 !== this.props.unitData.floorplan.length ? React.createElement(
             'a',
             { href: this.props.unitData.floorplan, target: '_blank' },
@@ -645,6 +651,11 @@ var Unit = React.createClass({
                     this.props.unitData.availableSpaces,
                     ' of ',
                     this.props.unitData.totalSpaces
+                ),
+                React.createElement(
+                    'td',
+                    null,
+                    mealplan
                 ),
                 React.createElement(
                     'td',

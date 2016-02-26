@@ -707,6 +707,7 @@ class Housing_Available_Units {
 					'specialty'       => $specialty,
 					'floorplan'       => $space['Web Comments'],
 					'unitType'        => $unit_type,
+					'mealplan'        => $space['Mandatory Meal Plan Flag'] === 'True',
 					'spacesAvailableBySize' => array(
 						'Single' => 0,
 						'Double' => 0,

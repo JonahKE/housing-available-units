@@ -335,6 +335,7 @@ var AreaTable = React.createClass({
                             <th>Unit #</th>
                             <th>Gender</th>
                             <th>Spaces Available</th>
+                            <th>Meal Plan</th>
                             <th style={{display:showSpecialty}}>Specialty</th>
                             <th style={{textAlign:'center'}}>Floorplan</th>
                         </tr>
@@ -399,6 +400,7 @@ var Unit = React.createClass({
             maybeVisible = this.state.isFiltered ? 'none' : '',
             classN = 'unit-row ' + ( this.state.detailsExpanded ? 'expanded' : 'collapsed' ),
             expandIcon = 'glyphicon ' + ( this.state.detailsExpanded ? 'glyphicon-minus' : 'glyphicon-plus' ),
+            mealplan = ( this.props.unitData.mealplan ? <span className="glyphicon glyphicon-check"></span> : '' ),
             floorplan = ( 0 !== this.props.unitData.floorplan.length ) ? <a href={this.props.unitData.floorplan} target="_blank"><span className="glyphicon glyphicon-picture"></span></a> : '',
             showSpecialty = 'none';
 
@@ -424,6 +426,7 @@ var Unit = React.createClass({
                     <td>{this.props.unitData.suite}</td>
                     <td>{this.props.unitData.gender}</td>
                     <td>{this.props.unitData.availableSpaces} of {this.props.unitData.totalSpaces}</td>
+                    <td>{mealplan}</td>
                     <td style={{display:showSpecialty}}>{this.props.unitData.specialty}</td>
                     <td>{floorplan}</td>
                 </tr>
