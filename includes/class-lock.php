@@ -4,7 +4,7 @@ class BU_HAU_Sync_Lock {
 	const SYNC_LOCK = 'bu_hau_sync_lock';
     private static $instance;
 	private static $debug     = false;
-	private static $datetime_format = 'Y-m-d H:i:s';
+	private static $datetime_format = 'Y-m-d h:i:s a';
 	public static $start_time = null;
 	public static $max_time   = null;
 
