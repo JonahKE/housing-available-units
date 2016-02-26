@@ -462,7 +462,7 @@ var Room = React.createClass({
 
         return (
             <li className={classN}>
-                {this.props.data.room} &middot; {this.props.data.roomSize} &middot; {this.props.data.availableSpaces} of {this.props.data.totalSpaces} spaces available
+                {this.props.data.room} &middot; {this.props.data.roomSize} &middot; {this.props.data.availableSpaces} of {this.props.data.totalSpaces} spaces available &middot; {this.props.data.rate}
             </li>
         );
     }

@@ -735,6 +735,7 @@ class Housing_Available_Units {
 					'totalSpaces'     => 0,
 					'availableSpaces' => 0,
 					'spaceIDs'        => array( $space['Space ID'] ),
+					'rate'            => $space['Room Type Code'],
 				);
 
 				if ( ! isset( self::$room_size_counts[$room_size] ) ) {

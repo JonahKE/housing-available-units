@@ -717,7 +717,8 @@ var Room = React.createClass({
             this.props.data.availableSpaces,
             ' of ',
             this.props.data.totalSpaces,
-            ' spaces available'
+            ' spaces available · ',
+            this.props.data.rate
         );
     }
 });
