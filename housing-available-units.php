@@ -656,18 +656,18 @@ class Housing_Available_Units {
 					'availableSpaceCount'   => 0,
 					'totalSpaceCount'       => 0,
 					'spacesAvailableByType' => array(
-						'Apt'    => 0,
-						'Suite'  => 0,
-						'Dorm'   => 0,
-						'Semi'   => 0,
-						'Studio' => 0,
+						'Apt'        => 0,
+						'Dorm'       => 0,
+						'Semi-Suite' => 0,
+						'Studio'     => 0,
+						'Suite'      => 0,
 					),
 				);
 			}
 
 			self::$areas[$area_id]['totalSpaceCount']++;
 
-			$unit_type = preg_replace( self::GET_LAST_HSV, '', $space['Room Type'] );
+			$unit_type = self::get_unit_type( $space['Room Type'] );
 
 			// Add any previously-unkonwn unit types (not mentioned above)
 			if ( ! isset( self::$areas[$area_id]['spacesAvailableByType'][$unit_type] ) ) {
@@ -836,6 +836,25 @@ class Housing_Available_Units {
 			$room_size = preg_replace( self::GET_FIRST_HSV, '', $room_type );
 		}
 		return $room_size;
+	}
+
+	/**
+	 * Parse unit type (Apt, Suite, Semi-Suite, etc.) from Room Type strings:
+	 * - Apt-4Person-Single
+	 * - Suite-4Person-Single
+	 * - Semi-Suite-Double
+	 *
+	 * @param  string $room_type examples above
+	 * @return string            [Apt|Dorm|Semi-Suite|Studio|Suite]
+	 */
+	static function get_unit_type( $room_type ) {
+
+		$unit_type = preg_replace( self::GET_LAST_HSV, '', $room_type );
+		if ( $unit_type == 'Semi' ) {
+			$unit_type = 'Semi-Suite';
+		}
+
+		return $unit_type;
 	}
 
 	/**
