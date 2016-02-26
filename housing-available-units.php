@@ -237,7 +237,7 @@ class Housing_Available_Units {
 	 */
 	static function add_custom_cron_schedules( $schedules ) {
 		$schedules['per5minutes'] = array(
-			'interval' => 900,
+			'interval' => 300,
 			'display' => __( 'Every 5 minutes' )
 		);
 		$schedules['minutely'] = array(
