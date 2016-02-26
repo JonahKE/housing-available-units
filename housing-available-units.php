@@ -623,13 +623,13 @@ class Housing_Available_Units {
 		usort( self::$spaces, array( self, 'spaces_sort_func' ) );
 	 }
 
-	 /**
-	  * Sort the counts
-	  * @return null
-	  */
-	 static function sort() {
-	 		ksort( self::$housing_codes_counts );
-	 		ksort( self::$space_types_counts );
+	/**
+	 * Sort the counts
+	 * @return null
+	 */
+	static function sort() {
+			ksort( self::$housing_codes_counts );
+			ksort( self::$space_types_counts );
 	 }
 
 	/**
@@ -639,7 +639,7 @@ class Housing_Available_Units {
 	 */
 	static function process() {
 
-		if ( self::$debug && isset( $_GET['hau_limit'] ) ) {
+		if ( isset( $_GET['hau_limit'] ) ) {
 			array_splice( self::$spaces, intval( $_GET['hau_limit'] ) );
 		}
 

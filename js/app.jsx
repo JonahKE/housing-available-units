@@ -10,11 +10,11 @@ var DisplayMixin = {
     }
 };
 
-var FilterBar = React.createClass({ 
+var FilterBar = React.createClass({
     getInitialState: function() {
-        return { 
-            visible : false, 
-            expanded : false, 
+        return {
+            visible : false,
+            expanded : false,
             maxHeight : '300px'
         };
     },
@@ -89,7 +89,7 @@ var FilterBar = React.createClass({
     }
 });
 
-var BuildingsLine = React.createClass({ 
+var BuildingsLine = React.createClass({
     render: function(){
         return (
                 <li><label><input type="checkbox" name={this.props.building} checked={this.props.checked} onChange={this.props.updateFilter} /> {this.props.building}</label><br /></li>
@@ -97,7 +97,7 @@ var BuildingsLine = React.createClass({
     }
 });
 
-var CurrentAsOf = React.createClass({ 
+var CurrentAsOf = React.createClass({
     render: function(){
         return (
                 <div className='last-updated-container'>
@@ -117,12 +117,12 @@ var CurrentAsOf = React.createClass({
 var Housing = React.createClass({
     mixins: [DisplayMixin],
     getInitialState: function() {
-        var _state = { 
-            areas               : _bootstrap.areas, 
-            units               : _bootstrap.units, 
-            roomCount           : _bootstrap.totalRoomCount, 
-            isDataPending       : false, 
-            dataPending         : null, 
+        var _state = {
+            areas               : _bootstrap.areas,
+            units               : _bootstrap.units,
+            roomCount           : _bootstrap.totalRoomCount,
+            isDataPending       : false,
+            dataPending         : null,
             dataCreateTimestamp : _bootstrap.createTime,
             filtersActive       : false,
             specialtyOn         : false,
@@ -140,11 +140,11 @@ var Housing = React.createClass({
                 'spaceTypes'    : {}
             }
         };
-        
+
         Object.keys(_state.meta.genders).map(       (s,i) => { _state.filters['genders'][s] = true; } );
         Object.keys(_state.meta.housingCodes).map(  (s,i) => { _state.filters['housingCodes'][s] = false; } );
-        Object.keys(_state.meta.roomSizes).map(     (s,i) => { 
-                                                                _state.filters['roomSizes'][s] = true; 
+        Object.keys(_state.meta.roomSizes).map(     (s,i) => {
+                                                                _state.filters['roomSizes'][s] = true;
                                                             } );
         Object.keys(_state.meta.spaceTypes).map(    (s,i) => { _state.filters['spaceTypes'][s] = true; } );
 
@@ -160,9 +160,9 @@ var Housing = React.createClass({
         jQuery.getJSON( hau_opts.units_json, function(r){
             var now = new Date();
             if ( r.hasOwnProperty( 'areas' ) ){
-                this.setState({ 
-                    areas: r.areas, 
-                    lastDownloadTime: new Date(), 
+                this.setState({
+                    areas: r.areas,
+                    lastDownloadTime: new Date(),
                     dataCreateTimestamp: r.createTime,
                     meta : {
                         genders         : r.gender,
@@ -224,7 +224,7 @@ var Area = React.createClass({
             buildingsList[ b ] = true;
         }, this );
 
-        return { 
+        return {
             expanded: false,
             buildingsFilter: buildingsList
         };
@@ -233,8 +233,8 @@ var Area = React.createClass({
         if( this.props.allExpanded !== nextProps.allExpanded ){
             this.setState({
                 expanded : nextProps.allExpanded
-            }); 
-        }      
+            });
+        }
     },
     toggleShow: function(){
         this.setState({ expanded: !this.state.expanded });
@@ -279,7 +279,7 @@ var AreaTable = React.createClass({
             buildingsList[ b ] = true;
         }, this );
 
-        return { 
+        return {
             specialtyOn : false,
             buildingsFilterExpanded: false,
             buildingsFilter: buildingsList
@@ -288,7 +288,7 @@ var AreaTable = React.createClass({
     componentWillReceiveProps: function(nextProps){
        this.setState({
            specialtyOn : ( JSON.stringify( this.props.filters.housingCodes ) !== JSON.stringify( nextProps.filters.housingCodes ) )
-       }); 
+       });
     },
     toggleShowBuildingsFilter: function(e){
         e.preventDefault();
@@ -345,10 +345,10 @@ var AreaTable = React.createClass({
         );
     }
 });
- 
-var Unit = React.createClass({ 
+
+var Unit = React.createClass({
     getInitialState: function() {
-        return { 
+        return {
             hidden          : ( !this.props.unitData.availableSpaces ),
             recentlyTaken   : false,
             isFiltered      : this.isUnitFiltered(),
@@ -369,20 +369,20 @@ var Unit = React.createClass({
         if( this.props.unitData.availableSpaces > 0 && !nextProps.unitData.availableSpaces ){
            this.setState({
                recentlyTaken : true
-           }); 
+           });
         }
     },
     unitHasSpacesForFilteredSizes: function(spacesAvailableBySize){
         var hasAvailability = false;
         Object.keys( this.props.filters.roomSizes ).map( (s,i) => {
-            if( !hasAvailability && 
+            if( !hasAvailability &&
                 true === this.props.filters.roomSizes[ s ] &&
                 spacesAvailableBySize[s] > 0 ){
-                
+
                 hasAvailability = true;
             }
         } );
-        
+
         return hasAvailability;
     },
     isUnitFiltered: function(){
@@ -402,7 +402,7 @@ var Unit = React.createClass({
             floorplan = ( 0 !== this.props.unitData.floorplan.length ) ? <a href={this.props.unitData.floorplan} target="_blank"><span className="glyphicon glyphicon-picture"></span></a> : '',
             showSpecialty = 'none';
 
-        classN = classN + recentlyTakenClass; 
+        classN = classN + recentlyTakenClass;
 
         if( this.props.specialtyOn ){
             showSpecialty = 'table-cell';
@@ -416,7 +416,7 @@ var Unit = React.createClass({
 
         return (
             <tbody style={{display:maybeVisible}} className={classN} onClick={this.toggleExpanded}>
-                <tr> 
+                <tr>
                     <td><span className={expandIcon} aria-hidden="true" aria-label="Expand unit details"></span></td>
                     <td>{this.props.unitData.location}</td>
                     <td>{this.props.unitData.unitType}</td>
