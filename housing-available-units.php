@@ -700,7 +700,7 @@ class Housing_Available_Units {
 					'unitID'          => $unit_id,
 					'location'        => $space['Room Location'],
 					'floor'           => preg_replace( self::GET_FIRST_HSV, '', $space['Room Location Section'] ),
-					'suite'           => str_replace( $space['Room Location Section'], '', $unit_id ),
+					'suite'           => str_replace( $space['Short Name'] . '-', '', $unit_id ),
 					'totalSpaces'     => 0,
 					'availableSpaces' => 0,
 					'gender'          => $space['Gender'],
