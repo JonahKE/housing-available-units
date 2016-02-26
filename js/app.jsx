@@ -241,11 +241,11 @@ var Area = React.createClass({
     },
     render: function() {
         var g                       = this.props.group,
-            aptText                 = this.maybePlural( g.spacesAvailableByType.Apt, 'Apt' ),
-            suiteText               = this.maybePlural( g.spacesAvailableByType.Suite, 'Suite' ),
-            semiText                = this.maybePlural( g.spacesAvailableByType.Semi, 'Semi' ),
-            studioText              = this.maybePlural( g.spacesAvailableByType.Studio, 'Studio' ),
-            dormText                = this.maybePlural( g.spacesAvailableByType.Dorm, 'Dorm' ),
+            aptText                 = this.maybePlural( g.spacesAvailableByType['Apt'], 'Apt' ),
+            suiteText               = this.maybePlural( g.spacesAvailableByType['Suite'], 'Suite' ),
+            semiSuiteText           = this.maybePlural( g.spacesAvailableByType['Semi-Suite'], 'Semi-Suite' ),
+            studioText              = this.maybePlural( g.spacesAvailableByType['Studio'], 'Studio' ),
+            dormText                = this.maybePlural( g.spacesAvailableByType['Dorm'], 'Dorm' ),
             arrow_icon              = 'glyphicon ' + ( this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right' ),
             roomSummaryDisplay      = ( this.props.filtersActive ) ? 'none' : 'initial',
             filtersActiveDisplay    = ( this.props.filtersActive ) ? 'initial' : 'none';
@@ -259,7 +259,7 @@ var Area = React.createClass({
                         Available: &nbsp;
                         {aptText} | &nbsp;
                         {suiteText} | &nbsp;
-                        {semiText} | &nbsp;
+                        {semiSuiteText} | &nbsp;
                         {studioText} | &nbsp;
                         {dormText}
                     </span>
