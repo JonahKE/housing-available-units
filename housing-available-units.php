@@ -705,7 +705,7 @@ class Housing_Available_Units {
 					'availableSpaces' => 0,
 					'gender'          => $space['Gender'],
 					'specialty'       => $specialty,
-					'floorplan'       => $space['Web Image Location'],
+					'floorplan'       => $space['Web Comments'],
 					'unitType'        => $unit_type,
 					'spacesAvailableBySize' => array(
 						'Single' => 0,
