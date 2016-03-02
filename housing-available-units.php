@@ -63,6 +63,25 @@ class Housing_Available_Units {
 	public static $sync_options = array(
 		'bookings_only' => false,
 	);
+	public static $rate_translation = array(
+		// 'Code' => 'Yearly Amount',
+		'CB' => '9810',
+		'ST' => '10360',
+		'SC' => '11050',
+		'SS' => '11050',
+		'HD' => '11860',
+		'SB' => '12680',
+		'HS' => '13590',
+		'PB' => '13600',
+		'AP' => '12830',
+		'AN' => '15430',
+		'AB' => '16220',
+		'AT' => '16720',
+		'AS' => '17160',
+		'GD' => '10690',
+		'GT' => '11240',
+		'GS' => '13560',
+	);
 
 	// output
 	public static $sync_start_time = null;
@@ -728,6 +747,11 @@ class Housing_Available_Units {
 				// new room
 				$room_size = self::get_room_size( $space['Room Type'] );
 
+				$rate = '';
+				if ( ! empty( $space['Room Type Code'] ) && ! empty( self::$rate_translation[$space['Room Type Code']] ) ) {
+					$rate = money_format( '$%i', self::$rate_translation[$space['Room Type Code']] ) . '/year';
+				}
+
 				self::$areas[$area_id]['roomCount']++;
 				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room] = array(
 					'roomID'          => $room,
@@ -736,7 +760,7 @@ class Housing_Available_Units {
 					'totalSpaces'     => 0,
 					'availableSpaces' => 0,
 					'spaceIDs'        => array( $space['Space ID'] ),
-					'rate'            => $space['Room Type Code'],
+					'rate'            => $rate,
 				);
 
 				if ( ! isset( self::$room_size_counts[$room_size] ) ) {
