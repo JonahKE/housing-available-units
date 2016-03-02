@@ -518,7 +518,9 @@ var AreaTable = React.createClass({
                         React.createElement(
                             'th',
                             null,
-                            'Meal Plan'
+                            'Meal Plan',
+                            React.createElement('br', null),
+                            'Required'
                         ),
                         React.createElement(
                             'th',

@@ -335,7 +335,7 @@ var AreaTable = React.createClass({
                             <th>Unit #</th>
                             <th>Gender</th>
                             <th>Spaces Available</th>
-                            <th>Meal Plan</th>
+                            <th>Meal Plan<br />Required</th>
                             <th style={{display:showSpecialty}}>Specialty</th>
                             <th style={{textAlign:'center'}}>Floorplan</th>
                         </tr>
