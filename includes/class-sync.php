@@ -247,14 +247,16 @@ class BU_HAU_Sync {
 		}
 
 		// setup API paths
-		if ( defined( 'BU_HAU_API_URL' ) && defined( 'BU_HAU_API_PASSWORD' ) && defined( 'BU_HAU_API_USERNAME' )
-			 && BU_HAU_API_URL && BU_HAU_API_USERNAME && BU_HAU_API_PASSWORD ) {
-			self::$api_url = BU_HAU_API_URL;
-			self::$api_username = BU_HAU_API_USERNAME;
-			self::$api_password = BU_HAU_API_PASSWORD;
-		} else {
-			$msg = 'Missing BU_HAU_API_USERNAME, BU_HAU_API_PASSWORD or BU_HAU_API_URL constants to do sync.';
-			return new WP_Error( __METHOD__, $msg );
+		if ( ! self::$debug ) {
+			if ( defined( 'BU_HAU_API_URL' ) && defined( 'BU_HAU_API_PASSWORD' ) && defined( 'BU_HAU_API_USERNAME' )
+				 && BU_HAU_API_URL && BU_HAU_API_USERNAME && BU_HAU_API_PASSWORD ) {
+				self::$api_url = BU_HAU_API_URL;
+				self::$api_username = BU_HAU_API_USERNAME;
+				self::$api_password = BU_HAU_API_PASSWORD;
+			} else {
+				$msg = 'Missing BU_HAU_API_USERNAME, BU_HAU_API_PASSWORD or BU_HAU_API_URL constants to do sync.';
+				return new WP_Error( __METHOD__, $msg );
+			}
 		}
 
 		if ( self::$debug ) error_log( sprintf( '[%s]: Starting %s sync.', __METHOD__, self::get_sync_type() ) );
@@ -530,7 +532,7 @@ class BU_HAU_Sync {
 			$space['Room Location Summary'] = preg_replace( '!^[0-9\s\-]*!', '', $space['Room Location'] );
 		}
 
-		usort( self::$spaces, array( self, 'spaces_sort_func' ) );
+		usort( self::$spaces, array( __CLASS__, 'spaces_sort_func' ) );
 	 }
 
 	/**

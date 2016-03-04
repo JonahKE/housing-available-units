@@ -42,7 +42,7 @@ class BU_HAU_Sync_Lock {
 	}
 
 	static function unlock() {
-		delete_option( self::SYNC_LOCK );
+		return delete_option( self::SYNC_LOCK );
 	}
 
 	/**
@@ -55,11 +55,13 @@ class BU_HAU_Sync_Lock {
 
 			if ( $lock_time < $current_time - self::$max_time ) {
 				error_log( sprintf( '[%s] Unlocking idle lock from %s at %s.', __METHOD__, date( self::$datetime_format, $lock_time ), date( self::$datetime_format, $current_time ) ) );
-				self::unlock();
+				return self::unlock();
 			} else {
 				error_log( sprintf( '[%s] Cannot unlock at %s. Lock time: %s, Max time: %s.', __METHOD__, date( self::$datetime_format, $lock_time ), date( self::$datetime_format, $current_time ), self::$max_time ) );
+				return false;
 			}
 		}
+		return false;
 	}
 
 	static function get_start_time( $formatted = false ) {
