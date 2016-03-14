@@ -21,6 +21,7 @@ define( 'BU_HAU_HOUSING_CODES_FILENAME', 'Specialty Housing Codes' );
 
 require_once( 'includes/class-lock.php' );
 require_once( 'includes/class-sync.php' );
+require_once( 'includes/class-admin.php' );
 
 // define( 'BU_HAU_DEBUG', true );
 // define( 'BU_HAU_USE_SAMPLE_BOOKINGS', true );
@@ -59,6 +60,10 @@ class Housing_Available_Units {
 		}
 
 		BU_HAU_Sync::init( self::$debug );
+
+		if ( is_admin() ) {
+			BU_HAU_Admin::init( self::$debug );
+		}
 	}
 
 	/**

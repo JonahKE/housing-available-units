@@ -1,0 +1,26 @@
+.last-updated-container {
+	height: 30px;
+}
+
+#sync_button.sync {
+	display: none;
+}
+#sync_status.sync {
+	display: block;
+}
+
+#sync_button {
+	float: left;
+	margin-right: 6px;
+}
+#sync_status {
+	float: left;
+	width: 200px;
+	line-height: 28px;
+	display: none;
+}
+.wp-list-table .column-message .message {
+	width: 100%;
+	height: 100px;
+	overflow: auto;
+}
