@@ -20,10 +20,10 @@ class BU_HAU_Sync {
 	const GET_LAST_HSV  = '/-.*/';
 	const GET_FIRST_HSV = '/.*-/';
 
-	public static $debug = false;
-	public static $start_time = false;
-	public static $log = array();
-	public static $sync_status = 0;
+	public static $debug        = false;
+	public static $start_time   = false;
+	public static $log          = array();
+	public static $sync_status  = 0;
 	public static $sync_options = array(
 		'bookings_only' => false,
 	);
@@ -87,16 +87,16 @@ class BU_HAU_Sync {
 	 * Setup
 	 * @return null
 	 */
-    static function init( $debug = false) {
-    	self::$debug = $debug;
-    	self::$start_time = time();
+	static function init( $debug = false ) {
+		self::$debug = $debug;
+		self::$start_time = time();
 
 		self::setup_cron();
 
 		// admin only sync ajax calls
 		add_action( 'wp_ajax_bu_hau_sync_all', array( __CLASS__, 'sync_all' ) );
 		add_action( 'wp_ajax_bu_hau_sync_bookings', array( __CLASS__, 'sync_bookings' ) );
-    }
+	}
 
 	/**
 	 * Clear previous sync jobs
@@ -120,7 +120,7 @@ class BU_HAU_Sync {
 		if ( ! wp_next_scheduled( self::PREFIX . self::BOOKINGS_SYNC_NAME ) ) {
 			$sync_args = array( 'bookings_only' => true );
 			$sync_freq = self::BOOKINGS_SYNC_FREQ;
-			if ( defined( 'BU_HAU_USE_SAMPLE_BOOKINGS') && BU_HAU_USE_SAMPLE_BOOKINGS ) {
+			if ( defined( 'BU_HAU_USE_SAMPLE_BOOKINGS' ) && BU_HAU_USE_SAMPLE_BOOKINGS ) {
 				$sync_freq = self::BOOKINGS_SAMPLE_SYNC_FREQ;
 			}
 			wp_schedule_event( time(), $sync_freq, self::PREFIX . self::BOOKINGS_SYNC_NAME, array( $sync_args ) );
@@ -147,11 +147,11 @@ class BU_HAU_Sync {
 	static function add_custom_cron_schedules( $schedules ) {
 		$schedules['per5minutes'] = array(
 			'interval' => 300,
-			'display' => __( 'Every 5 minutes' )
+			'display' => __( 'Every 5 minutes' ),
 		);
 		$schedules['minutely'] = array(
 			'interval' => 60,
-			'display' => __( 'Every Minute' )
+			'display' => __( 'Every Minute' ),
 		);
 		return $schedules;
 	}
@@ -322,7 +322,7 @@ class BU_HAU_Sync {
 				}
 			}
 
-			if ( self::$sync_options['bookings_only'] ) return;
+			if ( self::$sync_options['bookings_only'] ) { return; }
 
 			$spaces_url = self::$api_url . rawurlencode( BU_HAU_SPACE_FILENAME . BU_HAU_FILE_EXT );
 			self::$spaces_file = $sync_dir . BU_HAU_SPACE_FILENAME . BU_HAU_FILE_EXT;
@@ -371,7 +371,7 @@ class BU_HAU_Sync {
 	 * @return string output as written to media dir file
 	 */
 	static function sync( $args = array() ) {
-		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) return;
+		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) { return; }
 
 		self::$sync_options = wp_parse_args( $args, self::$sync_options );
 
@@ -461,19 +461,19 @@ class BU_HAU_Sync {
 		self::log( sprintf( '[%s]: Parsing spaces.', __METHOD__ ), true );
 
 		if ( file_exists( $space_file ) ) {
-			if ( FALSE !== ( $handle = fopen( $space_file , 'r' ) ) ) {
+			if ( false !== ( $handle = fopen( $space_file , 'r' ) ) ) {
 				$headers = fgetcsv( $handle, 0, ',' );
 				$headers = array_map( 'trim', $headers );
-				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
+				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== false ) {
 					$data = array_map( 'trim', $data );
 					// format: { 'Room': 'something', 'Type': 'else' }
 					$space = array();
 					for ( $c = 0; $c < count( $data ); $c++ ) {
-						$space[$headers[$c]] = $data[$c];
+						$space[ $headers[ $c ] ] = $data[ $c ];
 					}
 					self::$spaces[] = $space;
 				}
-				fclose($handle);
+				fclose( $handle );
 			}
 		}
 	}
@@ -490,7 +490,7 @@ class BU_HAU_Sync {
 		self::log( sprintf( '[%s]: Parsing bookings.', __METHOD__ ), true );
 
 		if ( file_exists( $bookings_file ) ) {
-			if ( FALSE !== ( $handle = fopen( $bookings_file , 'r' ) ) ) {
+			if ( false !== ( $handle = fopen( $bookings_file , 'r' ) ) ) {
 
 				// ignore "Space ID" column header row
 				$headers = fgetcsv( $handle, 0, ',' );
@@ -499,12 +499,12 @@ class BU_HAU_Sync {
 					self::$bookings[] = $data[0];
 				}
 
-				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
+				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== false ) {
 					$data = array_map( 'trim', $data );
 					// format: [ 1, 2 ... 999 ]
 					self::$bookings[] = $data[0];
 				}
-				fclose($handle);
+				fclose( $handle );
 			}
 		}
 	}
@@ -525,18 +525,21 @@ class BU_HAU_Sync {
 		self::log( sprintf( '[%s]: Parsing specialty housing codes.', __METHOD__ ), true );
 
 		if ( file_exists( $housing_codes_file ) ) {
-			if ( FALSE !== ( $handle = fopen( $housing_codes_file , 'r' ) ) ) {
+			if ( false !== ( $handle = fopen( $housing_codes_file , 'r' ) ) ) {
+
+				// ignore column header row
 				$headers = fgetcsv( $handle, 0, ',' );
-				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
+
+				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== false ) {
 					$data = array_map( 'trim', $data );
 
 					if ( $data[2] == 'True' ) {
 						// ensure the code is active
 						// format: CODE => Code Name
-						self::$housing_codes[$data[0]] = $data[1];
+						self::$housing_codes[ $data[0] ] = $data[1];
 					}
 				}
-				fclose($handle);
+				fclose( $handle );
 			}
 		}
 	}
@@ -555,16 +558,16 @@ class BU_HAU_Sync {
 	 */
 	static function spaces_sort_func( $a, $b ) {
 		$rla_cmp = strcasecmp( $a['Room Location Area'], $b['Room Location Area'] );
-		if ( $rla_cmp != 0 ) return $rla_cmp;
+		if ( $rla_cmp != 0 ) { return $rla_cmp; }
 
 		$rls_cmp = strcasecmp( $a['Room Location Summary'], $b['Room Location Summary'] );
-		if ( $rls_cmp != 0 ) return $rls_cmp;
+		if ( $rls_cmp != 0 ) { return $rls_cmp; }
 
 		$ra_cmp = strnatcasecmp( $a['Room Location'], $b['Room Location'] );
-		if ( $ra_cmp != 0 ) return $ra_cmp;
+		if ( $ra_cmp != 0 ) { return $ra_cmp; }
 
 		$rss_cmp = strcasecmp( $a['Room Space Summary'], $b['Room Space Summary'] );
-		if ( $rss_cmp != 0 ) return $rss_cmp;
+		if ( $rss_cmp != 0 ) { return $rss_cmp; }
 
 		$rs_cmp = strnatcasecmp( $a['Room Space'], $b['Room Space'] );
 		return $rs_cmp;
@@ -585,7 +588,7 @@ class BU_HAU_Sync {
 		}
 
 		usort( self::$spaces, array( __CLASS__, 'spaces_sort_func' ) );
-	 }
+	}
 
 	/**
 	 * Sort the counts
@@ -594,7 +597,7 @@ class BU_HAU_Sync {
 	static function sort() {
 			ksort( self::$housing_codes_counts );
 			ksort( self::$space_types_counts );
-	 }
+	}
 
 	/**
 	 * Process the areas data into structured React-consumable data
@@ -614,8 +617,8 @@ class BU_HAU_Sync {
 
 			// areas
 			$area_id = $space['Room Location Area'];
-			if ( ! isset( self::$areas[$area_id] ) ) {
-				self::$areas[$area_id] = array(
+			if ( ! isset( self::$areas[ $area_id ] ) ) {
+				self::$areas[ $area_id ] = array(
 					'areaID'                => $area_id,
 					'buildings'             => array(),
 					'roomCount'             => 0,
@@ -631,38 +634,38 @@ class BU_HAU_Sync {
 				);
 			}
 
-			self::$areas[$area_id]['totalSpaceCount']++;
+			self::$areas[ $area_id ]['totalSpaceCount']++;
 
 			$unit_type = self::get_unit_type( $space['Room Type'] );
 
 			// Add any previously-unkonwn unit types (not mentioned above)
-			if ( ! isset( self::$areas[$area_id]['spacesAvailableByType'][$unit_type] ) ) {
-				self::$areas[$area_id]['spacesAvailableByType'][$unit_type] = 0;
+			if ( ! isset( self::$areas[ $area_id ]['spacesAvailableByType'][ $unit_type ] ) ) {
+				self::$areas[ $area_id ]['spacesAvailableByType'][ $unit_type ] = 0;
 			}
 
 			// counts
-			if ( ! isset( self::$space_types_counts[$unit_type] ) ) {
-				self::$space_types_counts[$unit_type] = 0;
+			if ( ! isset( self::$space_types_counts[ $unit_type ] ) ) {
+				self::$space_types_counts[ $unit_type ] = 0;
 			}
 
-			if ( ! isset( self::$gender_counts[$space['Gender']] ) ) {
-				self::$gender_counts[$space['Gender']] = 0;
+			if ( ! isset( self::$gender_counts[ $space['Gender'] ] ) ) {
+				self::$gender_counts[ $space['Gender'] ] = 0;
 			}
 
-			if ( ! in_array( $space['Room Location'], self::$areas[$area_id]['buildings'] ) ) {
-				self::$areas[$area_id]['buildings'][] = $space['Room Location'];
+			if ( ! in_array( $space['Room Location'], self::$areas[ $area_id ]['buildings'] ) ) {
+				self::$areas[ $area_id ]['buildings'][] = $space['Room Location'];
 			}
 
 			// units
 			$unit_id = $space['Room Location Floor Suite'];
-			if ( ! isset( self::$areas[$area_id]['units'][$unit_id] ) ) {
+			if ( ! isset( self::$areas[ $area_id ]['units'][ $unit_id ] ) ) {
 
 				$specialty = self::get_specialty_code( $space['Specialty Cd'] );
 				if ( $specialty ) {
-					self::$housing_codes_counts[$specialty] = 0;
+					self::$housing_codes_counts[ $specialty ] = 0;
 				}
 
-				self::$areas[$area_id]['units'][$unit_id] = array(
+				self::$areas[ $area_id ]['units'][ $unit_id ] = array(
 					'unitID'          => $unit_id,
 					'location'        => $space['Room Location'],
 					'floor'           => preg_replace( self::GET_FIRST_HSV, '', $space['Room Location Section'] ),
@@ -684,43 +687,43 @@ class BU_HAU_Sync {
 
 			}
 
-			self::$areas[$area_id]['units'][$unit_id]['totalSpaces']++;
+			self::$areas[ $area_id ]['units'][ $unit_id ]['totalSpaces']++;
 
 			// rooms
 			$room = $space['Room Base'];
-			if ( isset( self::$areas[$area_id]['units'][$unit_id]['rooms'][$room] ) ) {
-				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['spaceIDs'][] = $space['Space ID'];
+			if ( isset( self::$areas[ $area_id ]['units'][ $unit_id ]['rooms'][ $room ] ) ) {
+				self::$areas[ $area_id ]['units'][ $unit_id ]['rooms'][ $room ]['spaceIDs'][] = $space['Space ID'];
 			} else {
 				// new room
 				$room_size = self::get_room_size( $space['Room Type'] );
 
 				$rate = '';
-				if ( ! empty( $space['Room Type Code'] ) && ! empty( self::$rate_translation[$space['Room Type Code']] ) ) {
-					$rate = money_format( '$%i', self::$rate_translation[$space['Room Type Code']] ) . '/year';
+				if ( ! empty( $space['Room Type Code'] ) && ! empty( self::$rate_translation[ $space['Room Type Code'] ] ) ) {
+					$rate = money_format( '$%i', self::$rate_translation[ $space['Room Type Code'] ] ) . '/year';
 				}
 
-				self::$areas[$area_id]['roomCount']++;
-				self::$areas[$area_id]['units'][$unit_id]['rooms'][$room] = array(
+				self::$areas[ $area_id ]['roomCount']++;
+				self::$areas[ $area_id ]['units'][ $unit_id ]['rooms'][ $room ] = array(
 					'roomID'          => $room,
 					'roomSize'        => $room_size,
-					'room'            => preg_replace( self::GET_FIRST_HSV, '', $room),
+					'room'            => preg_replace( self::GET_FIRST_HSV, '', $room ),
 					'totalSpaces'     => 0,
 					'availableSpaces' => 0,
 					'spaceIDs'        => array( $space['Space ID'] ),
 					'rate'            => $rate,
 				);
 
-				if ( ! isset( self::$room_size_counts[$room_size] ) ) {
-					self::$room_size_counts[$room_size] = 0;
+				if ( ! isset( self::$room_size_counts[ $room_size ] ) ) {
+					self::$room_size_counts[ $room_size ] = 0;
 				}
 
 				// Add any previously-unknown room sizes (not mentioned above)
-				if ( ! isset( self::$areas[$area_id]['units'][$unit_id]['spacesAvailableBySize'][$room_size] ) ) {
-					self::$areas[$area_id]['units'][$unit_id]['spacesAvailableBySize'][$room_size] = 0;
+				if ( ! isset( self::$areas[ $area_id ]['units'][ $unit_id ]['spacesAvailableBySize'][ $room_size ] ) ) {
+					self::$areas[ $area_id ]['units'][ $unit_id ]['spacesAvailableBySize'][ $room_size ] = 0;
 				}
 			}
 
-			self::$areas[$area_id]['units'][$unit_id]['rooms'][$room]['totalSpaces']++;
+			self::$areas[ $area_id ]['units'][ $unit_id ]['rooms'][ $room ]['totalSpaces']++;
 
 		}
 		return true;
@@ -752,7 +755,7 @@ class BU_HAU_Sync {
 
 				foreach ( $unit['rooms'] as &$room ) {
 					$room['availableSpaces'] = $room['totalSpaces'];
-					foreach( $room['spaceIDs'] as $space_id ) {
+					foreach ( $room['spaceIDs'] as $space_id ) {
 						if ( in_array( $space_id, self::$bookings ) ) {
 							// space is booked, update totals
 							$area['availableSpaceCount']--;
@@ -760,13 +763,13 @@ class BU_HAU_Sync {
 							$room['availableSpaces']--;
 
 						} else {
-							$area['spacesAvailableByType'][$unit['unitType']]++;
-							$unit['spacesAvailableBySize'][$room['roomSize']]++;
-							self::$space_types_counts[$unit['unitType']]++;
-							self::$gender_counts[$unit['gender']]++;
-							self::$room_size_counts[$room['roomSize']]++;
+							$area['spacesAvailableByType'][ $unit['unitType'] ]++;
+							$unit['spacesAvailableBySize'][ $room['roomSize'] ]++;
+							self::$space_types_counts[ $unit['unitType'] ]++;
+							self::$gender_counts[ $unit['gender'] ]++;
+							self::$room_size_counts[ $room['roomSize'] ]++;
 							if ( ! empty( $unit['specialty'] ) && trim( $unit['specialty'] ) ) {
-								self::$housing_codes_counts[$unit['specialty']]++;
+								self::$housing_codes_counts[ $unit['specialty'] ]++;
 							}
 						}
 					}
@@ -792,7 +795,7 @@ class BU_HAU_Sync {
 	 * @return string       definition if found
 	 */
 	static function get_specialty_code( $code ) {
-		return ! empty( self::$housing_codes[$code] ) ? self::$housing_codes[$code] : '';
+		return ! empty( self::$housing_codes[ $code ] ) ? self::$housing_codes[ $code ] : '';
 	}
 
 	/**
@@ -804,9 +807,9 @@ class BU_HAU_Sync {
 	 * @return string            Single
 	 */
 	static function get_room_size( $room_type ) {
-		if ( preg_match( '!-([A-Za-z]*)-([A-Z]{2})!', $room_type, $matches ) ){
+		if ( preg_match( '!-([A-Za-z]*)-([A-Z]{2})!', $room_type, $matches ) ) {
 			$room_size = $matches[1];
-		} else if ( stripos( $room_type, '-Paddle' ) !== FALSE ) {
+		} else if ( stripos( $room_type, '-Paddle' ) !== false ) {
 			$room_size = preg_replace( '/.*-([^-]+)-Paddle/', '\1', $room_type );
 		} else {
 			$room_size = preg_replace( self::GET_FIRST_HSV, '', $room_type );

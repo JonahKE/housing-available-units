@@ -2,24 +2,24 @@
 
 class BU_HAU_Sync_Lock {
 	const SYNC_LOCK = 'bu_hau_sync_lock';
-    private static $instance;
+	private static $instance;
 	private static $debug     = false;
 	private static $datetime_format = 'Y-m-d h:i:s a';
 	public static $start_time = null;
 	public static $max_time   = null;
 
-    /**
-     * Returns the Singleton instance of this class.
-     *
-     * @return Singleton The *Singleton* instance.
-     */
-    public static function get_instance() {
-        if (null === static::$instance) {
-            static::$instance = new static();
-        }
+	/**
+	 * Returns the Singleton instance of this class.
+	 *
+	 * @return Singleton The *Singleton* instance.
+	 */
+	public static function get_instance() {
+		if ( null === static::$instance ) {
+			static::$instance = new static();
+		}
 
-        return static::$instance;
-    }
+		return static::$instance;
+	}
 
 	static function setup( $start_time, $max_time = 500 ) {
 		self::$start_time = $start_time;
