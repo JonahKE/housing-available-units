@@ -12,11 +12,18 @@ class BU_HAU_Sync {
 	const BOOKINGS_SYNC_FREQ = 'per5minutes';
 	const BOOKINGS_SAMPLE_SYNC_FREQ = 'minutely';
 
+	const SYNC_STATUS_SUCCESS = 1;
+	const SYNC_STATUS_FAILED  = 2;
+	const SYNC_STATUS_RUNNING = 3;
+
 	// regex
 	const GET_LAST_HSV  = '/-.*/';
 	const GET_FIRST_HSV = '/.*-/';
 
 	public static $debug = false;
+	public static $start_time = false;
+	public static $log = array();
+	public static $sync_status = 0;
 	public static $sync_options = array(
 		'bookings_only' => false,
 	);
@@ -82,6 +89,7 @@ class BU_HAU_Sync {
 	 */
     static function init( $debug = false) {
     	self::$debug = $debug;
+    	self::$start_time = time();
 
 		self::setup_cron();
 
@@ -231,11 +239,14 @@ class BU_HAU_Sync {
 	static function prepare_sync() {
 
 		// setup lock
-		BU_HAU_Sync_Lock::get_instance()->setup( time(), self::SYNC_TIMEOUT * 3 );
+		BU_HAU_Sync_Lock::get_instance()->setup( self::$start_time, self::SYNC_TIMEOUT * 3 );
 		$lock_result = BU_HAU_Sync_Lock::get_instance()->lock();
 		if ( is_wp_error( $lock_result ) ) {
 			return $lock_result;
 		}
+
+		self::log( sprintf( '[%s]: Acquired lock at ' . BU_HAU_Sync_Lock::get_instance()->get_start_time( true ), __METHOD__ ), true );
+		self::$sync_status = self::SYNC_STATUS_RUNNING;
 
 		// setup API paths
 		if ( ! self::$debug ) {
@@ -250,7 +261,7 @@ class BU_HAU_Sync {
 			}
 		}
 
-		if ( self::$debug ) error_log( sprintf( '[%s]: Starting %s sync.', __METHOD__, self::get_sync_type() ) );
+		self::log( sprintf( '[%s]: Starting %s sync.', __METHOD__, self::get_sync_type() ), true );
 
 		// extra safety check
 		// if sync is bookings only, ensure we have required files
@@ -260,7 +271,7 @@ class BU_HAU_Sync {
 			$units_file = $wp_upload_dir['basedir'] . BU_HAU_MEDIA_UNITS_JSON_FILE;
 
 			if ( ! file_exists( $units_file ) ) {
-				error_log( sprintf( '[%s]: Missing previously generated files. Sync all files.', __METHOD__ ) );
+				self::log( sprintf( '[%s]: Missing previously generated files. Sync all files.', __METHOD__ ) );
 				self::$sync_options['bookings_only'] = false;
 			}
 		}
@@ -269,9 +280,13 @@ class BU_HAU_Sync {
 	}
 
 	static function cleanup_sync() {
+
+		self::log( sprintf( '[%s]: Cleanup sync.', __METHOD__ ), true );
+
 		BU_HAU_Sync_Lock::get_instance()->unlock();
-		$duration = time() - BU_HAU_Sync_Lock::get_instance()->get_start_time();
-		if ( self::$debug ) error_log( sprintf( '[%s]: Completed %s sync in %s seconds.', __METHOD__, self::get_sync_type(), $duration ) );
+		$duration = time() - self::$start_time;
+		self::log( sprintf( '[%s]: Completed %s sync in %s seconds.', __METHOD__, self::get_sync_type(), $duration ) );
+		self::save_log();
 	}
 
 	/**
@@ -297,7 +312,7 @@ class BU_HAU_Sync {
 				$bookings_num = ( (int) date( 'i' ) % 6 ) + 1; // range: 1 to 6, changes every minute
 				$bookings_num = str_pad( $bookings_num, 2, '0', STR_PAD_LEFT ); // range 01 to 06
 				self::$bookings_file = BU_HAU_SAMPLE_DIR . BU_HAU_BOOKINGS_FILENAME . '-' . $bookings_num . BU_HAU_FILE_EXT;
-				if ( self::$debug ) error_log( sprintf( '[%s]: BU_HAU_USE_SAMPLE_BOOKINGS turned on. Using %s.', __METHOD__, basename( self::$bookings_file ) ) );
+				self::log( sprintf( '[%s]: BU_HAU_USE_SAMPLE_BOOKINGS turned on. Using %s.', __METHOD__, basename( self::$bookings_file ) ), true );
 			} else {
 				$bookings_url = self::$api_url . rawurlencode( BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT );
 				self::$bookings_file = $sync_dir . BU_HAU_BOOKINGS_FILENAME . BU_HAU_FILE_EXT;
@@ -362,14 +377,16 @@ class BU_HAU_Sync {
 
 		$prepare_sync = self::prepare_sync();
 		if ( is_wp_error( $prepare_sync ) ) {
-			error_log( sprintf( '[%s]: Aborting sync. %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
+			self::$sync_status = self::SYNC_STATUS_FAILED;
+			self::log( sprintf( '[%s]: Aborting sync. %s', $prepare_sync->get_error_code(), $prepare_sync->get_error_message() ) );
 			self::cleanup_sync();
 			return false;
 		}
 
 		$sync_files = self::sync_files();
 		if ( is_wp_error( $sync_files ) ) {
-			error_log( sprintf( '[%s]: Aborting sync. %s', $sync_files->get_error_code(), $sync_files->get_error_message() ) );
+			self::$sync_status = self::SYNC_STATUS_FAILED;
+			self::log( sprintf( '[%s]: Aborting sync. %s', $sync_files->get_error_code(), $sync_files->get_error_message() ) );
 			self::cleanup_sync();
 			return false;
 		}
@@ -402,6 +419,8 @@ class BU_HAU_Sync {
 	 * @return null
 	 */
 	static function load() {
+
+		self::log( sprintf( '[%s]: Loading previously processed spaces.', __METHOD__ ) );
 
 		// spaces
 		$wp_upload_dir = wp_upload_dir();
@@ -438,6 +457,9 @@ class BU_HAU_Sync {
 	 * @return null
 	 */
 	static function parse_spaces( $space_file ) {
+
+		self::log( sprintf( '[%s]: Parsing spaces.', __METHOD__ ), true );
+
 		if ( file_exists( $space_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $space_file , 'r' ) ) ) {
 				$headers = fgetcsv( $handle, 0, ',' );
@@ -464,6 +486,9 @@ class BU_HAU_Sync {
 	 * @return null
 	 */
 	static function parse_bookings( $bookings_file ) {
+
+		self::log( sprintf( '[%s]: Parsing bookings.', __METHOD__ ), true );
+
 		if ( file_exists( $bookings_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $bookings_file , 'r' ) ) ) {
 
@@ -496,6 +521,9 @@ class BU_HAU_Sync {
 	 * @return null
 	 */
 	static function parse_housing_codes( $housing_codes_file ) {
+
+		self::log( sprintf( '[%s]: Parsing specialty housing codes.', __METHOD__ ), true );
+
 		if ( file_exists( $housing_codes_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $housing_codes_file , 'r' ) ) ) {
 				$headers = fgetcsv( $handle, 0, ',' );
@@ -574,6 +602,8 @@ class BU_HAU_Sync {
 	 * @return null
 	 */
 	static function process() {
+
+		self::log( sprintf( '[%s]: Processing data.', __METHOD__ ), true );
 
 		if ( isset( $_GET['hau_limit'] ) ) {
 			array_splice( self::$spaces, intval( $_GET['hau_limit'] ) );
@@ -701,6 +731,9 @@ class BU_HAU_Sync {
 	 * @return null
 	 */
 	static function apply_bookings() {
+
+		self::log( sprintf( '[%s]: Applying bookings to spaces.', __METHOD__ ) );
+
 		// reset counts
 		$counts_arrays = array( 'space_types_counts', 'gender_counts', 'room_size_counts', 'housing_codes_counts' );
 		foreach ( $counts_arrays as $counters ) {
@@ -811,6 +844,9 @@ class BU_HAU_Sync {
 
 		self::write_contents( $units_json_file, json_encode( self::$output ) );
 		self::write_contents( $units_js_file, 'var _bootstrap = ' . json_encode( self::$output ) );
+
+		self::log( sprintf( '[%s]: Saving processed files.', __METHOD__ ) );
+		self::$sync_status = self::SYNC_STATUS_SUCCESS;
 	}
 
 	static function write_contents( $file, $contents ) {
@@ -818,7 +854,7 @@ class BU_HAU_Sync {
 
 		if ( ! file_exists( $path ) ) {
 			if ( ! wp_mkdir_p( $path ) ) {
-				error_log( __METHOD__ . ': Failed to create dir for writing processed data: ' . $path );
+				self::log( __METHOD__ . ': Failed to create dir for writing processed data: ' . $path );
 				return false;
 			}
 		}
@@ -849,6 +885,9 @@ class BU_HAU_Sync {
 	 * @return null
 	 */
 	static function prepare_output() {
+
+		self::log( sprintf( '[%s]: Preparing output.', __METHOD__ ) );
+
 		self::$output = array(
 			'createTime'   => BU_HAU_Sync_Lock::get_instance()->get_start_time( true ),
 			'spaceTypes'   => self::$space_types_counts,
@@ -859,4 +898,51 @@ class BU_HAU_Sync {
 		);
 	}
 
+	/**
+	 * Logs messages into an array and then saves to WP
+	 *
+	 * @param  string  $msg          Log message
+	 * @param  boolean $ensure_debug Only error_log when using debug
+	 * @return boolean               if log got saved into WP
+	 */
+	static function log( $msg, $ensure_debug = false ) {
+		if ( ! $ensure_debug || self::$debug ) {
+			error_log( $msg );
+		}
+
+		array_unshift( self::$log, array(
+			'time' => time(),
+			'msg'  => $msg,
+		) );
+
+		return self::save_log();
+	}
+
+	/**
+	 * Save log to an option
+	 * * Allows continuous updates based on the start time, just call the func
+	 * @return boolean saved or not
+	 */
+	static function save_log() {
+
+		$option_name = self::PREFIX . 'sync_log';
+
+		$option          = get_option( $option_name, array() );
+		$sync_log        = array(
+			'start_time' => self::$start_time,
+			'log'        => self::$log,
+			'status'     => self::$sync_status,
+		);
+
+		if ( ! empty( $option[0] ) && $option[0]['start_time'] == self::$start_time ) {
+			$option = array_slice( $option, 1 );
+		}
+
+		array_unshift( $option, $sync_log );
+
+		// keep only the first 100 entries (chronologically last)
+		$option = array_slice( $option, 0, 100 );
+
+		return update_option( $option_name, $option );
+	}
 }

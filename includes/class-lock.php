@@ -28,9 +28,9 @@ class BU_HAU_Sync_Lock {
 
 	static function lock() {
 		self::auto_unlock_on_idle();
-		$lock = get_option( self::SYNC_LOCK );
-		if ( $lock ) {
-			$msg = 'Sync already started at ' . date( self::$datetime_format, $lock );
+
+		if ( $lock_time = self::get_lock() ) {
+			$msg = 'Sync already started at ' . date( self::$datetime_format, $lock_time );
 			return new WP_Error( __METHOD__, $msg );
 		}
 
@@ -50,7 +50,7 @@ class BU_HAU_Sync_Lock {
 	 * We need to unlock once max reasonable time has passed.
 	 */
 	static function auto_unlock_on_idle() {
-		if ( $lock_time = get_option( self::SYNC_LOCK ) ) {
+		if ( $lock_time = self::get_lock() ) {
 			$current_time = time();
 
 			if ( $lock_time < $current_time - self::$max_time ) {
@@ -62,6 +62,14 @@ class BU_HAU_Sync_Lock {
 			}
 		}
 		return false;
+	}
+
+	static function get_lock() {
+		return get_option( self::SYNC_LOCK );
+	}
+
+	static function is_locked() {
+		return self::get_lock() !== false;
 	}
 
 	static function get_start_time( $formatted = false ) {
