@@ -450,6 +450,14 @@ class BU_HAU_Sync {
 	static function parse_bookings( $bookings_file ) {
 		if ( file_exists( $bookings_file ) ) {
 			if ( FALSE !== ( $handle = fopen( $bookings_file , 'r' ) ) ) {
+
+				// ignore "Space ID" column header row
+				$headers = fgetcsv( $handle, 0, ',' );
+				if ( $headers[0] != 'Space ID' ) {
+					$data = array_map( 'trim', $data );
+					self::$bookings[] = $data[0];
+				}
+
 				while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
 					$data = array_map( 'trim', $data );
 					// format: [ 1, 2 ... 999 ]
