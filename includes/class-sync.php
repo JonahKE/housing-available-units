@@ -85,18 +85,9 @@ class BU_HAU_Sync {
 
 		self::setup_cron();
 
-		if ( isset( $_GET['hau_sync'] ) ) {
-			if ( self::$debug ) error_log( sprintf( '[%s]: Explicitly firing all sync.', __METHOD__ ) );
-			echo self::sync();
-			die;
-		}
-
-		if ( isset( $_GET['hau_bookings_sync'] ) ) {
-			if ( self::$debug ) error_log( sprintf( '[%s]: Explicitly firing bookings sync.', __METHOD__ ) );
-			$args = array( 'bookings_only' => true );
-			echo self::sync( $args );
-			die;
-		}
+		// admin only sync ajax calls
+		add_action( 'wp_ajax_bu_hau_sync_all', array( __CLASS__, 'sync_all' ) );
+		add_action( 'wp_ajax_bu_hau_sync_bookings', array( __CLASS__, 'sync_bookings' ) );
     }
 
 	/**
@@ -332,6 +323,31 @@ class BU_HAU_Sync {
 				return $result;
 			}
 		}
+	}
+
+	/**
+	 * Sync all data
+	 * @return null
+	 */
+	static function sync_all() {
+
+		self::log( sprintf( '[%s]: Explicitly firing all sync.', __METHOD__ ) );
+
+		echo self::sync();
+		die;
+	}
+
+	/**
+	 * Sync only the bookings
+	 * @return null
+	 */
+	static function sync_bookings() {
+
+		self::log( sprintf( '[%s]: Explicitly firing bookings sync.', __METHOD__ ) );
+
+		$args = array( 'bookings_only' => true );
+		echo self::sync( $args );
+		die;
 	}
 
 	/**
