@@ -23,7 +23,7 @@ require_once( 'includes/class-lock.php' );
 require_once( 'includes/class-sync.php' );
 require_once( 'includes/class-admin.php' );
 
-define( 'BU_HAU_DEBUG', true );
+// define( 'BU_HAU_DEBUG', true );
 // define( 'BU_HAU_USE_SAMPLE_BOOKINGS', true );
 add_action( 'init', array( 'Housing_Available_Units', 'init' ), 99 );
 add_shortcode( 'housing_availability', array( 'Housing_Available_Units', 'do_shortcode' ) );

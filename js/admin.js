@@ -58,8 +58,6 @@ var Housing = React.createClass({
                 this.setState({ clearingLock: true });
                 action_url = hau_admin_opts.sync_cancel_url;
                 break;
-            default:
-                return false;
         }
 
         jQuery.ajax({
