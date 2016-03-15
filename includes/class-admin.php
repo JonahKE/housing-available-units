@@ -82,9 +82,9 @@ class BU_HAU_Admin
 
 		if ( self::$debug ) {
 			wp_register_script( 'react', 'https://fb.me/react-with-addons-0.14.6.js', array(), '0.14.6' );
-			wp_register_script( 'react-dom', 'https://fb.me/react-dom-0.14.6.js', array( 'react', 'babel' ), '0.14.6' );
+			wp_register_script( 'react-dom', 'https://fb.me/react-dom-0.14.6.js', array( 'react' ), '0.14.6' );
 			wp_enqueue_script( 'babel', 'https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.js', array(), null );
-			wp_register_script( 'hau-react-app',  plugins_url( '../js/admin.jsx', __FILE__ ), array( 'jquery', 'react-dom', 'momentjs', 'hau-admin-js' ), BU_HAU_VERSION, true );
+			wp_register_script( 'hau-react-app',  plugins_url( '../js/admin.jsx', __FILE__ ), array( 'jquery', 'babel', 'react-dom', 'momentjs', 'hau-admin-js' ), BU_HAU_VERSION, true );
 		} else {
 			wp_register_script( 'react', 'https://fb.me/react-0.14.6.min.js', array(), '0.14.6' );
 			wp_register_script( 'react-dom', 'https://fb.me/react-dom-0.14.6.min.js', array( 'react' ), '0.14.6' );
