@@ -10,13 +10,13 @@ var Housing = React.createClass({
             dataCreateTimestamp : (new Date()).toString(),
             synclock            : _bootstrap.synclock,
             synclog             : _bootstrap.synclog,
-            updating             : false
+            updating            : false,
+            clearingLock        : false
         };
         return _state;
     },
     componentDidMount:function(){
         setTimeout( this.updateData, updateInterval * 1000);
-        this.initSyncHandlers();
     },
     updateData: function(){
         this.setState({updating: true});
@@ -29,27 +29,38 @@ var Housing = React.createClass({
                     synclock         : r.synclock,
                     synclog          : r.synclog,
                     updating         : false,
+                    clearingLock     : ( r.synclock && this.state.clearingLock )
                 });
             }
         }.bind(this)).always(function(){
             setTimeout( this.updateData, updateInterval * 1000 );
         }.bind(this));
     },
-    initSyncHandlers: function() {
-        var self = this;
-        jQuery('#sync_button a').click(function(e){
-            e.preventDefault();
+    handleSyncClick: function( e ){
+        e.preventDefault();
+        var action_url;
 
-            jQuery('#sync_button, #sync_status').toggleClass('sync');
+        switch ( e.target.id ){
+            case 'sync_all':
+                this.setState({synclock: true});
+                action_url = hau_admin_opts.sync_all_url;
+                break;
+            case 'sync_bookings':
+                this.setState({synclock: true});
+                action_url = hau_admin_opts.sync_bookings_url;
+                break;
+            case 'clear_lock':
+                this.setState({clearingLock: true});
+                action_url = hau_admin_opts.sync_cancel_url;
+                break;
+        }
 
-            jQuery.ajax({
-                url: jQuery(this).attr('href')
-            }).always(function() {
-                jQuery('#sync_button, #sync_status').removeClass('sync');
-                self.updateData();
-            });
-            return false;
-        });
+        jQuery.ajax({
+            url: action_url
+        }).always(function() {
+            this.updateData();
+        }.bind(this));
+        return false;
     },
     renderSyncLog: function(s,i,a) {
         return <SyncLog group={s} key={i} id={i} />;
@@ -78,7 +89,7 @@ var Housing = React.createClass({
                     </tfoot>
                 </table>
                 <br />
-                <SyncButton synclock={this.state.synclock} />
+                <SyncButton synclock={this.state.synclock} clearingLock={this.state.clearingLock} clickSyncAction={this.handleSyncClick} />
             </div>
         );
     }
@@ -105,6 +116,7 @@ var SyncLog = React.createClass({
         var start_time = moment(g.start_time, 'X').format('YYYY-MM-DD hh:mm:ss a');
         var alt_class  = this.props.id % 2 === 0 ? 'alternate' : '';
         var status     = 'Unknown';
+        var flag;
 
         switch (this.props.group.status) {
             case 1:
@@ -135,23 +147,30 @@ var SyncLog = React.createClass({
 
 var SyncButton = React.createClass({
     render: function() {
-        var g            = this.props.group;
-        var sync_class   = this.props.synclock ? 'sync' : '';
+        var g                   = this.props.group;
+        var syncStatusLabel     = 'Syncing';
+        var sync_class          = this.props.synclock ? 'sync' : '';
+        var clearLockDisplay    = 'inline';
+
+        if( this.props.clearingLock ){
+            syncStatusLabel     = 'Clearing lock';
+            clearLockDisplay    = 'none';
+        }
 
         return (
             <div className="tablenav bottom">
                 <div className="alignleft actions bulkactions">
                     <div id="sync_button" className={sync_class}>
-                        <a id="sync_all" href={hau_admin_opts.sync_all_url} className="button">
+                        <a id="sync_all" href="#" className="button" onClick={this.props.clickSyncAction}>
                             Sync All
                         </a>
-                        <a id="sync_bookings" href={hau_admin_opts.sync_bookings_url} className="button">
+                        <a id="sync_bookings" href="#" className="button" onClick={this.props.clickSyncAction}>
                             Sync Bookings
                         </a>
                     </div>
                     <div id="sync_status" className={sync_class}>
-                        Sync'ing...
-                        <a href={hau_admin_opts.sync_cancel_url}>Clear lock</a>
+                        <span className="spinner active" style={{display:'inline-block','float':'none'}}></span> {syncStatusLabel}... 
+                        <a id="clear_lock" href="#" onClick={this.props.clickSyncAction} style={{display:clearLockDisplay}}>Clear lock</a>
                     </div>
                 </div>
             </div>
