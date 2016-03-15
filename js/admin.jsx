@@ -58,10 +58,13 @@ var Housing = React.createClass({
         }
 
         jQuery.ajax({
-            url: action_url
-        }).always(function() {
-            this.updateData();
-        }.bind(this));
+                url: action_url
+            })
+            .always(function() {
+                this.updateData();
+            }.bind(this)
+        );
+
         return false;
     },
     renderSyncLog: function(s,i,a) {

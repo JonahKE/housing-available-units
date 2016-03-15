@@ -67,6 +67,7 @@ var Housing = React.createClass({
         }).always((function () {
             this.updateData();
         }).bind(this));
+
         return false;
     },
     renderSyncLog: function renderSyncLog(s, i, a) {
