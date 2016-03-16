@@ -299,7 +299,14 @@ var Housing = React.createClass({
         this.setState({ allExpanded: !this.state.allExpanded });
     },
     renderAreas: function renderAreas(s, i, a) {
-        return React.createElement(Area, { group: s, units: s.units, key: s.areaID, name: s.areaID, filters: this.state.filters, filtersActive: this.state.filtersActive, specialtyOn: this.state.specialtyOn, allExpanded: this.state.allExpanded });
+        return React.createElement(Area, {
+            group: s,
+            key: s.areaID,
+            filters: this.state.filters,
+            filtersActive: this.state.filtersActive,
+            specialtyOn: this.state.specialtyOn,
+            allExpanded: this.state.allExpanded
+        });
     },
     render: function render() {
         var _this3 = this;
@@ -372,7 +379,7 @@ var Area = React.createClass({
                 { className: 'bu_collapsible', onClick: this.toggleShow, style: { cursor: 'pointer' } },
                 React.createElement('span', { className: arrow_icon, 'aria-hidden': 'true' }),
                 '  ',
-                this.props.name,
+                g.areaID,
                 '  ',
                 React.createElement(
                     'span',
@@ -394,7 +401,7 @@ var Area = React.createClass({
                     'Filter(s) active'
                 )
             ),
-            React.createElement(AreaTable, { units: this.props.units, buildings: g.buildings, expanded: this.state.expanded, filters: this.props.filters, specialtyOn: this.props.specialtyOn })
+            React.createElement(AreaTable, { units: g.units, buildings: g.buildings, expanded: this.state.expanded, filters: this.props.filters, specialtyOn: this.props.specialtyOn })
         );
     }
 });

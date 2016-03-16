@@ -198,7 +198,14 @@ var Housing = React.createClass({
         this.setState({ allExpanded: !this.state.allExpanded });
     },
     renderAreas: function(s,i,a) {
-        return <Area group={s} units={s.units} key={s.areaID} name={s.areaID} filters={this.state.filters} filtersActive={this.state.filtersActive} specialtyOn={this.state.specialtyOn} allExpanded={this.state.allExpanded} />;
+        return <Area 
+                    group={s} 
+                    key={s.areaID} 
+                    filters={this.state.filters} 
+                    filtersActive={this.state.filtersActive} 
+                    specialtyOn={this.state.specialtyOn} 
+                    allExpanded={this.state.allExpanded} 
+                />;
     },
     render: function(){
         var expandCollapseAllText = this.state.allExpanded ? 'Collapse' : 'Expand';
@@ -254,7 +261,7 @@ var Area = React.createClass({
             <div className="housing_area bu_collapsible_container" style={{ overflow : 'hidden' }}>
                 <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
                     <span className={arrow_icon} aria-hidden="true"></span> &nbsp;
-                    {this.props.name} &nbsp;
+                    {g.areaID} &nbsp;
                     <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>
                         Available: &nbsp;
                         {aptText} | &nbsp;
@@ -265,7 +272,7 @@ var Area = React.createClass({
                     </span>
                     <span className="filters-active" style={{ display: filtersActiveDisplay }}>Filter(s) active</span>
                 </h2>
-                <AreaTable units={this.props.units} buildings={g.buildings} expanded={this.state.expanded} filters={this.props.filters} specialtyOn={this.props.specialtyOn} />
+                <AreaTable units={g.units} buildings={g.buildings} expanded={this.state.expanded} filters={this.props.filters} specialtyOn={this.props.specialtyOn} />
             </div>
         );
     }
