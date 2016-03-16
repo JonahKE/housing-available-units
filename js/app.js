@@ -601,7 +601,7 @@ var Unit = React.createClass({
             mealplan = this.props.unitData.mealplan ? React.createElement('span', { className: 'glyphicon glyphicon-check' }) : '',
             floorplan = 0 !== this.props.unitData.floorplan.length ? React.createElement(
             'a',
-            { href: this.props.unitData.floorplan, target: '_blank' },
+            { href: this.props.unitData.floorplan, target: this.props.unitData.floorplan },
             React.createElement('span', { className: 'glyphicon glyphicon-picture' })
         ) : '',
             showSpecialty = 'none';

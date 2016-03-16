@@ -408,7 +408,7 @@ var Unit = React.createClass({
             classN = 'unit-row ' + ( this.state.detailsExpanded ? 'expanded' : 'collapsed' ),
             expandIcon = 'glyphicon ' + ( this.state.detailsExpanded ? 'glyphicon-minus' : 'glyphicon-plus' ),
             mealplan = ( this.props.unitData.mealplan ? <span className="glyphicon glyphicon-check"></span> : '' ),
-            floorplan = ( 0 !== this.props.unitData.floorplan.length ) ? <a href={this.props.unitData.floorplan} target="_blank"><span className="glyphicon glyphicon-picture"></span></a> : '',
+            floorplan = ( 0 !== this.props.unitData.floorplan.length ) ? <a href={this.props.unitData.floorplan} target={this.props.unitData.floorplan}><span className="glyphicon glyphicon-picture"></span></a> : '',
             showSpecialty = 'none';
 
         classN = classN + recentlyTakenClass;
