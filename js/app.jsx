@@ -175,7 +175,7 @@ var Housing = React.createClass({
             document.getElementById( 'loader' ).className = '';
         }.bind(this)).always(function(){
             setTimeout( this.updateData, updateInterval * 1000 );
-        });
+        }.bind(this));
     },
     updateFilters: function( e ) {
         var filterGroup = e.target.name,

@@ -272,9 +272,9 @@ var Housing = React.createClass({
                 });
             }
             document.getElementById('loader').className = '';
-        }).bind(this)).always(function () {
+        }).bind(this)).always((function () {
             setTimeout(this.updateData, updateInterval * 1000);
-        });
+        }).bind(this));
     },
     updateFilters: function updateFilters(e) {
         var _this2 = this;
