@@ -699,7 +699,7 @@ class BU_HAU_Sync {
 
 				$rate = '';
 				if ( ! empty( $space['Room Type Code'] ) && ! empty( self::$rate_translation[ $space['Room Type Code'] ] ) ) {
-					$rate = money_format( '$%i', self::$rate_translation[ $space['Room Type Code'] ] ) . '/year';
+					$rate = '$' . number_format( self::$rate_translation[ $space['Room Type Code'] ], 0 ) . '/year';
 				}
 
 				self::$areas[ $area_id ]['roomCount']++;
