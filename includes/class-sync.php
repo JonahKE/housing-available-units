@@ -699,7 +699,15 @@ class BU_HAU_Sync {
 
 				$rate = '';
 				if ( ! empty( $space['Room Type Code'] ) && ! empty( self::$rate_translation[ $space['Room Type Code'] ] ) ) {
-					$rate = '$' . number_format( self::$rate_translation[ $space['Room Type Code'] ], 0 ) . '/year';
+					$rate_amt = intval( self::$rate_translation[ $space['Room Type Code'] ] );
+
+					// Myles Standish Hall & Myles Annex discounted
+					// for 2016/17 -- rate code unchanged
+					if( "Myles Standish Hall" == self::$areas[ $area_id ]['units'][ $unit_id ]['location']
+						|| "Myles Annex" == self::$areas[ $area_id ]['units'][ $unit_id ]['location'] ){
+						$rate_amt = $rate_amt * 0.5;
+					}
+					$rate = '$' . number_format( $rate_amt, 0 ) . '/year';
 				}
 
 				self::$areas[ $area_id ]['roomCount']++;
