@@ -46,8 +46,8 @@ class BU_HAU_Admin
 		$sync_log_items = array_slice( self::get_sync_log(), 0, 5 );
 		$is_locked      = BU_HAU_Sync_Lock::get_instance()->is_locked();
 		$response = array(
-		'synclog'  => $sync_log_items,
-		'synclock' => $is_locked,
+			'synclog'  => $sync_log_items,
+			'synclock' => $is_locked,
 		);
 
 		echo json_encode( $response );
