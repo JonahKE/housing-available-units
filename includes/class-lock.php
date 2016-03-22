@@ -42,7 +42,7 @@ class BU_HAU_Sync_Lock {
 	}
 
 	static function unlock() {
-		return delete_option( self::SYNC_LOCK );
+		return update_option( self::SYNC_LOCK, 0 );
 	}
 
 	/**
@@ -65,11 +65,11 @@ class BU_HAU_Sync_Lock {
 	}
 
 	static function get_lock() {
-		return get_option( self::SYNC_LOCK );
+		return get_option( self::SYNC_LOCK, 0 );
 	}
 
 	static function is_locked() {
-		return self::get_lock() !== false;
+		return self::get_lock() !== 0;
 	}
 
 	static function get_start_time( $formatted = false ) {
