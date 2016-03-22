@@ -238,14 +238,6 @@ class BU_HAU_Sync {
 	 */
 	static function prepare_sync() {
 
-		// setup lock
-		BU_HAU_Sync_Lock::get_instance()->setup( self::$start_time, self::SYNC_TIMEOUT * 3 );
-		$lock_result = BU_HAU_Sync_Lock::get_instance()->lock();
-		if ( is_wp_error( $lock_result ) ) {
-			return $lock_result;
-		}
-
-		self::log( sprintf( '[%s]: Acquired lock at ' . BU_HAU_Sync_Lock::get_instance()->get_start_time( true ), __METHOD__ ), true );
 		self::$sync_status = self::SYNC_STATUS_RUNNING;
 
 		// setup API paths
@@ -374,6 +366,15 @@ class BU_HAU_Sync {
 		if ( defined( 'BU_FS_READ_ONLY' ) && BU_FS_READ_ONLY ) { return; }
 
 		self::$sync_options = wp_parse_args( $args, self::$sync_options );
+
+		// setup lock
+		BU_HAU_Sync_Lock::get_instance()->setup( self::$start_time, self::SYNC_TIMEOUT * 3 );
+		$lock_result = BU_HAU_Sync_Lock::get_instance()->lock();
+		if ( is_wp_error( $lock_result ) ) {
+			self::log( sprintf( '[%s]: Aborting sync. %s', $lock_result->get_error_code(), $lock_result->get_error_message() ) );
+			return false;
+		}
+		self::log( sprintf( '[%s]: Acquired lock at ' . BU_HAU_Sync_Lock::get_instance()->get_start_time( true ), __METHOD__ ), true );
 
 		$prepare_sync = self::prepare_sync();
 		if ( is_wp_error( $prepare_sync ) ) {
