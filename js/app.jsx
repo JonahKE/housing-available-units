@@ -254,8 +254,8 @@ var Area = React.createClass({
             studioText              = this.maybePlural( g.spacesAvailableByType['Studio'], 'Studio' ),
             dormText                = this.maybePlural( g.spacesAvailableByType['Dorm'], 'Dorm' ),
             arrow_icon              = 'glyphicon ' + ( this.state.expanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right' ),
-            roomSummaryDisplay      = ( this.props.filtersActive ) ? 'none' : 'initial',
-            filtersActiveDisplay    = ( this.props.filtersActive ) ? 'initial' : 'none';
+            roomSummaryDisplay      = ( this.props.filtersActive ) ? 'none' : 'block',
+            filtersActiveDisplay    = ( this.props.filtersActive ) ? 'block' : 'none';
 
         return (
             <div className="housing_area bu_collapsible_container" style={{ overflow : 'hidden' }}>

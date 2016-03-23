@@ -8,6 +8,8 @@
 }
 .group-room-summary {
   font-size: 0.6em;
+  display: block;
+  margin: 6px 33px 0;
 }
 #loader {
   position: fixed;
@@ -98,6 +100,8 @@
   font-style: italic;
   color: #FF0000;
   font-size: 0.5em;
+  display: block;
+  margin: 6px 33px 0;
 }
 .filter-container{
   overflow: hidden;
@@ -238,7 +242,7 @@
   max-width: 90%;
 }
 #content .main .container{
-  width: 100%;
+  max-width: 1400px;
 }
 .unit-row{
   cursor: pointer;
