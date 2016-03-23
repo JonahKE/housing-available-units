@@ -242,7 +242,7 @@
   max-width: 90%;
 }
 #content .main .container{
-  max-width: 1400px;
+  width: 100%;
 }
 .unit-row{
   cursor: pointer;
