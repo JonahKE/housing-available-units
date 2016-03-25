@@ -18,10 +18,20 @@ var FilterBar = React.createClass({
             maxHeight : '300px'
         };
     },
-    toggleVisible: function(){
+    toggleVisible: function( e ){
+        if('KeyboardEvent' == typeof e.nativeEvent){ 
+            if( 13 === e.keyCode && 32 === e.keyCode ){
+                e.preventDefault()
+            } else {
+                return;
+            }
+        } 
+
         this.setState( previousState => {
             previousState.visible = !previousState.visible;
         });
+
+        return false;
     },
     toggleExpanded: function(){
         this.setState( previousState => {
@@ -59,7 +69,7 @@ var FilterBar = React.createClass({
 
         return (
                 <div className="filter-container bu_collapsible_container" style={{ maxHeight : this.state.maxHeight, cursor: 'pointer' }}>
-                    <h2 className="bu_collapsible" onClick={this.toggleVisible} tabIndex="0" aria-expanded={this.state.expanded}><span className={icon} aria-label="Click to Filter Rooms"></span> Filter Rooms...</h2>
+                    <h2 className="bu_collapsible" onClick={this.toggleVisible} onKeyPress={this.toggleVisible} tabIndex="0" aria-expanded={this.state.expanded}><span className={icon} aria-label="Click to Filter Rooms" role="button"></span> Filter Rooms...</h2>
                     <div className="bu_collapsible_section" style={{display : maybeVisible}}>
                         <div className="filter-group">
                             <h3>Gender</h3>

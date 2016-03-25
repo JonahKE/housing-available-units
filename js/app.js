@@ -23,10 +23,20 @@ var FilterBar = React.createClass({
             maxHeight: '300px'
         };
     },
-    toggleVisible: function toggleVisible() {
+    toggleVisible: function toggleVisible(e) {
+        if ('KeyboardEvent' == typeof e.nativeEvent) {
+            if (13 === e.keyCode && 32 === e.keyCode) {
+                e.preventDefault();
+            } else {
+                return;
+            }
+        }
+
         this.setState(function (previousState) {
             previousState.visible = !previousState.visible;
         });
+
+        return false;
     },
     toggleExpanded: function toggleExpanded() {
         this.setState(function (previousState) {
@@ -81,8 +91,8 @@ var FilterBar = React.createClass({
             { className: 'filter-container bu_collapsible_container', style: { maxHeight: this.state.maxHeight, cursor: 'pointer' } },
             React.createElement(
                 'h2',
-                { className: 'bu_collapsible', onClick: this.toggleVisible, tabIndex: '0', 'aria-expanded': this.state.expanded },
-                React.createElement('span', { className: icon, 'aria-label': 'Click to Filter Rooms' }),
+                { className: 'bu_collapsible', onClick: this.toggleVisible, onKeyPress: this.toggleVisible, tabIndex: '0', 'aria-expanded': this.state.expanded },
+                React.createElement('span', { className: icon, 'aria-label': 'Click to Filter Rooms', role: 'button' }),
                 ' Filter Rooms...'
             ),
             React.createElement(
