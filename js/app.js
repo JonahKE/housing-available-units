@@ -81,7 +81,7 @@ var FilterBar = React.createClass({
             { className: 'filter-container bu_collapsible_container', style: { maxHeight: this.state.maxHeight, cursor: 'pointer' } },
             React.createElement(
                 'h2',
-                { className: 'bu_collapsible', onClick: this.toggleVisible },
+                { className: 'bu_collapsible', onClick: this.toggleVisible, tabIndex: '0', 'aria-expanded': this.state.expanded },
                 React.createElement('span', { className: icon, 'aria-label': 'Click to Filter Rooms' }),
                 ' Filter Rooms...'
             ),
@@ -357,8 +357,16 @@ var Area = React.createClass({
             });
         }
     },
-    toggleShow: function toggleShow() {
+    toggleShow: function toggleShow(e) {
+        if ('KeyboardEvent' == typeof e.nativeEvent) {
+            if (13 === e.keyCode && 32 === e.keyCode) {
+                e.preventDefault();
+            } else {
+                return;
+            }
+        }
         this.setState({ expanded: !this.state.expanded });
+        return false;
     },
     render: function render() {
         var g = this.props.group,
@@ -376,10 +384,14 @@ var Area = React.createClass({
             { className: 'housing_area bu_collapsible_container', style: { overflow: 'hidden' } },
             React.createElement(
                 'h2',
-                { className: 'bu_collapsible', onClick: this.toggleShow, style: { cursor: 'pointer' } },
+                { className: 'bu_collapsible', onClick: this.toggleShow, onKeyPress: this.toggleShow, style: { cursor: 'pointer' }, 'aria-expanded': this.state.expanded },
                 React.createElement('span', { className: arrow_icon, 'aria-hidden': 'true' }),
                 '  ',
-                g.areaID,
+                React.createElement(
+                    'span',
+                    { tabIndex: '0' },
+                    g.areaID
+                ),
                 '  ',
                 React.createElement(
                     'span',
@@ -620,14 +632,14 @@ var Unit = React.createClass({
 
         return React.createElement(
             'tbody',
-            { style: { display: maybeVisible }, className: classN, onClick: this.toggleExpanded },
+            { style: { display: maybeVisible }, className: classN, onClick: this.toggleExpanded, 'aria-live': 'polite' },
             React.createElement(
                 'tr',
                 null,
                 React.createElement(
                     'td',
                     null,
-                    React.createElement('span', { className: expandIcon, 'aria-hidden': 'true', 'aria-label': 'Expand unit details' })
+                    React.createElement('span', { className: expandIcon, tabIndex: '0', role: 'button', 'aria-label': 'Expand unit details', 'aria-expanded': this.state.expanded })
                 ),
                 React.createElement(
                     'td',

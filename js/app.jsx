@@ -59,7 +59,7 @@ var FilterBar = React.createClass({
 
         return (
                 <div className="filter-container bu_collapsible_container" style={{ maxHeight : this.state.maxHeight, cursor: 'pointer' }}>
-                    <h2 className="bu_collapsible" onClick={this.toggleVisible}><span className={icon} aria-label="Click to Filter Rooms"></span> Filter Rooms...</h2>
+                    <h2 className="bu_collapsible" onClick={this.toggleVisible} tabIndex="0" aria-expanded={this.state.expanded}><span className={icon} aria-label="Click to Filter Rooms"></span> Filter Rooms...</h2>
                     <div className="bu_collapsible_section" style={{display : maybeVisible}}>
                         <div className="filter-group">
                             <h3>Gender</h3>
@@ -243,8 +243,16 @@ var Area = React.createClass({
             });
         }
     },
-    toggleShow: function(){
+    toggleShow: function( e ){
+        if('KeyboardEvent' == typeof e.nativeEvent){ 
+            if( 13 === e.keyCode && 32 === e.keyCode ){
+                e.preventDefault()
+            } else {
+                return;
+            }
+        } 
         this.setState({ expanded: !this.state.expanded });
+        return false;
     },
     render: function() {
         var g                       = this.props.group,
@@ -259,9 +267,9 @@ var Area = React.createClass({
 
         return (
             <div className="housing_area bu_collapsible_container" style={{ overflow : 'hidden' }}>
-                <h2 className="bu_collapsible" onClick={this.toggleShow} style={{ cursor: 'pointer' }}>
+                <h2 className="bu_collapsible" onClick={this.toggleShow} onKeyPress={this.toggleShow} style={{ cursor: 'pointer' }} aria-expanded={this.state.expanded}>
                     <span className={arrow_icon} aria-hidden="true"></span> &nbsp;
-                    {g.areaID} &nbsp;
+                    <span tabIndex="0">{g.areaID}</span> &nbsp;
                     <span className="group-room-summary" style={{ display: roomSummaryDisplay }}>
                         Available: &nbsp;
                         {aptText} | &nbsp;
@@ -424,9 +432,9 @@ var Unit = React.createClass({
         }
 
         return (
-            <tbody style={{display:maybeVisible}} className={classN} onClick={this.toggleExpanded}>
+            <tbody style={{display:maybeVisible}} className={classN} onClick={this.toggleExpanded} aria-live="polite">
                 <tr>
-                    <td><span className={expandIcon} aria-hidden="true" aria-label="Expand unit details"></span></td>
+                    <td><span className={expandIcon} tabIndex="0" role="button" aria-label="Expand unit details" aria-expanded={this.state.expanded}></span></td>
                     <td>{this.props.unitData.location}</td>
                     <td>{this.props.unitData.unitType}</td>
                     <td>{this.props.unitData.floor}</td>
