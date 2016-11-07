@@ -496,7 +496,7 @@ class BU_HAU_Sync {
 				// ignore "Space ID" column header row
 				$headers = fgetcsv( $handle, 0, ',' );
 				if ( $headers[0] != 'Space ID' ) {
-					$data = array_map( 'trim', $data );
+					$data = array_map( 'trim', $headers );
 					self::$bookings[] = $data[0];
 				}
 
